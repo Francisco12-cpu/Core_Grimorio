@@ -5,15 +5,15 @@
     "corSecundaria": "#8b1a1a",
     "tempoGlitch": 5000,
     "senhaMestre": "NAUTILUS",
-    "brilho": 1.0
+    "brilho": 1
   },
   "itens": [
     {
-      "titulo": "Exemplo de Manuscrito",
-      "descricao": "Uma descrição enigmática.",
-      "arquivo": "exemplo.html",
+      "titulo": "Bestiário do Caçador",
+      "descricao": "Feito pelo caçador, lenhador e estudioso.",
+      "arquivo": "bestiario.html",
       "senha": "",
-      "aviso": "",
+      "aviso": "Feito pelo caçador, lenhador e estudioso",
       "categoria": ""
     }
   ]

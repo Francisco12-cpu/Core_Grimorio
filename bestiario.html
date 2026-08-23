@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Bestiário do Caçador</title>
+  <style>
+    /* ----- FONTES E VARIÁVEIS ----- */
+    @import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap');
+    :root {
+      --parchment-light: #e8d9b5;
+      --parchment-dark: #c4a87a;
+      --ink: #2a1f14;
+      --ink-faded: #5a4a34;
+      --gold: #d4af37;
+      --gold-dim: #b8962a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      margin: 0;
+      background: #1e140e;
+      font-family: 'IM Fell English', serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px 8px;
+      touch-action: pan-y;
+    }
+    /* ----- LIVRO ----- */
+    .book-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      height: 680px;
+      perspective: 1500px;
+      overflow: hidden;
+      border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      touch-action: pan-y;
+    }
+    .book {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    /* ----- PÁGINAS ----- */
+    .page {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      overflow-y: auto;
+      padding: 28px 24px 40px;
+      background: linear-gradient(165deg, var(--parchment-light), var(--parchment-dark));
+      color: var(--ink);
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.08);
+      font-size: 15px;
+      line-height: 1.7;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+    .page::before {
+      content: "";
+      position: absolute; inset: 0;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+      pointer-events: none;
+      mix-blend-mode: multiply;
+      opacity: 0.5;
+    }
+    .page::after {
+      content: "";
+      position: absolute; inset: 0;
+      box-shadow: inset 0 0 60px rgba(30,20,14,0.20);
+      pointer-events: none;
+    }
+    /* Vinco central */
+    .center-fold {
+      position: absolute;
+      top: 0; left: 50%;
+      width: 2px; height: 100%;
+      transform: translateX(-50%);
+      background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.08), transparent);
+      pointer-events: none;
+      z-index: 2;
+    }
+    .center-fold::after {
+      content: "";
+      position: absolute;
+      top: 0; left: -12px;
+      width: 24px; height: 100%;
+      background: linear-gradient(to right, transparent, rgba(0,0,0,0.03), transparent);
+      pointer-events: none;
+    }
+    /* Cantos ornamentados */
+    .corner-deco {
+      position: absolute;
+      font-size: 12px;
+      color: var(--gold-dim);
+      opacity: 0.25;
+      pointer-events: none;
+      letter-spacing: 1px;
+    }
+    .corner-deco.tl { top: 10px; left: 12px; }
+    .corner-deco.tr { top: 10px; right: 12px; }
+    .corner-deco.bl { bottom: 10px; left: 12px; }
+    .corner-deco.br { bottom: 10px; right: 12px; }
+    /* Borda interna */
+    .inner-border {
+      position: absolute;
+      inset: 6px;
+      border: 1px solid rgba(42,31,20,0.06);
+      pointer-events: none;
+      border-radius: 2px;
+    }
+    /* Manchas e rabiscos */
+    .coffee-stain {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(120,80,40,0.08), transparent 70%);
+      pointer-events: none;
+      filter: blur(2px);
+    }
+    .doodle {
+      position: absolute;
+      pointer-events: none;
+      opacity: 0.15;
+    }
+    .doodle svg {
+      width: 100%;
+      height: 100%;
+    }
+    .folio {
+      position: absolute;
+      bottom: 14px;
+      right: 20px;
+      font-family: 'IM Fell English SC', serif;
+      font-size: 11px;
+      color: var(--ink-faded);
+      opacity: 0.4;
+      letter-spacing: 1px;
+    }
+    /* ----- TIPOGRAFIA ----- */
+    h1.title {
+      font-family: 'UnifrakturMaguntia', cursive;
+      font-size: 38px;
+      text-align: center;
+      margin: 6px 0 2px;
+      color: var(--gold);
+      text-shadow: 0 0 30px rgba(212,175,55,0.15), 1px 1px 0 rgba(0,0,0,0.3);
+      letter-spacing: 2px;
+    }
+    .subtitle {
+      text-align: center;
+      font-family: 'IM Fell English SC', serif;
+      letter-spacing: 2px;
+      font-size: 12px;
+      color: var(--parchment-dark);
+      margin-bottom: 12px;
+    }
+    .rule {
+      width: 60px;
+      height: 1px;
+      background: var(--ink-faded);
+      margin: 12px auto;
+      opacity: 0.3;
+    }
+    .quote {
+      font-style: italic;
+      text-align: center;
+      font-size: 17px;
+      line-height: 1.6;
+      margin: 16px auto;
+      max-width: 90%;
+      color: var(--ink);
+    }
+    .quote cite {
+      display: block;
+      margin-top: 8px;
+      font-style: normal;
+      font-family: 'IM Fell English SC', serif;
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--ink-faded);
+    }
+    .credit {
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--ink-faded);
+    }
+    h2.chapter {
+      font-family: 'IM Fell English SC', serif;
+      font-size: 20px;
+      letter-spacing: 1px;
+      text-align: center;
+      margin: 0 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(74,60,40,0.20);
+      position: relative;
+    }
+    h2.chapter .deco {
+      display: block;
+      font-size: 12px;
+      letter-spacing: 6px;
+      color: var(--ink-faded);
+      opacity: 0.3;
+      margin-top: 2px;
+    }
+    h3.animal-name {
+      font-family: 'IM Fell English SC', serif;
+      font-size: 20px;
+      margin: 0 0 2px;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .scientific {
+      font-style: italic;
+      font-size: 13px;
+      color: var(--ink-faded);
+      margin-bottom: 6px;
+      display: block;
+    }
+    p {
+      font-size: 15px;
+      line-height: 1.7;
+      margin: 0 0 8px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px 12px;
+      margin: 6px 0 10px;
+      font-size: 13px;
+      background: rgba(255,255,255,0.12);
+      padding: 8px 12px;
+      border-radius: 4px;
+      border-left: 2px solid var(--gold-dim);
+    }
+    .info-grid .label {
+      font-weight: bold;
+      color: var(--ink-faded);
+      font-size: 12px;
+      font-family: 'IM Fell English SC', serif;
+      letter-spacing: 0.5px;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      margin: 8px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    table th {
+      font-family: 'IM Fell English SC', serif;
+      text-align: left;
+      border-bottom: 1px solid var(--ink-faded);
+      padding: 4px 6px 2px 0;
+      font-weight: normal;
+      letter-spacing: 0.5px;
+      color: var(--ink-faded);
+    }
+    table td {
+      padding: 4px 6px 4px 0;
+      border-bottom: 1px solid rgba(42,31,20,0.06);
+    }
+    table tr:last-child td { border-bottom: none; }
+    .table-zell td:first-child {
+      font-family: 'IM Fell English SC', serif;
+      font-weight: bold;
+      color: #3d2817;
+    }
+    .note {
+      margin: 10px 0 0;
+      padding: 10px 14px;
+      background: rgba(42,31,20,0.05);
+      border-left: 3px solid var(--gold-dim);
+      font-style: italic;
+      font-size: 14px;
+      border-radius: 0 4px 4px 0;
+    }
+    .note .sign {
+      display: block;
+      text-align: right;
+      font-style: normal;
+      font-family: 'IM Fell English SC', serif;
+      font-size: 12px;
+      margin-top: 4px;
+      color: var(--ink-faded);
+    }
+    .track-icon {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+    .track-icon svg {
+      width: 100%;
+      height: 100%;
+      fill: var(--ink-faded);
+      opacity: 0.6;
+    }
+    /* ----- CAPA ----- */
+    .page-cover {
+      background: radial-gradient(ellipse at 30% 20%, #5a3d28, #1e130b);
+      color: #e8d9b5;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      box-shadow: inset 0 0 80px rgba(0,0,0,0.7);
+      z-index: 10;
+      padding: 30px 24px;
+    }
+    .page-cover::before { background-image: none; }
+    .page-cover::after { box-shadow: inset 0 0 100px rgba(0,0,0,0.4); }
+    .page-cover h1 { font-size: 40px; }
+    .page-cover .subtitle { color: #b89a68; font-size: 13px; letter-spacing: 3px; }
+    .page-cover .rule { background: var(--gold-dim); opacity: 0.4; width: 50px; }
+    .page-cover .credit { color: #a08050; font-size: 14px; }
+    .cover-ornament {
+      font-size: 22px;
+      color: var(--gold-dim);
+      opacity: 0.3;
+      letter-spacing: 6px;
+      margin: 6px 0;
+    }
+    /* ----- RESPONSIVO ----- */
+    @media (max-width: 480px) {
+      .page { padding: 20px 16px 32px; font-size: 14px; }
+      .page-cover h1 { font-size: 30px; }
+      .info-grid { grid-template-columns: 1fr; gap: 2px; font-size: 13px; }
+      .book-wrapper { height: 580px; max-width: 100%; }
+      h2.chapter { font-size: 18px; }
+      h3.animal-name { font-size: 18px; }
+      .corner-deco { font-size: 10px; }
+    }
+    @media (max-height: 700px) { .book-wrapper { height: 540px; } }
+    .page::-webkit-scrollbar { width: 3px; background: transparent; }
+    .page::-webkit-scrollbar-thumb { background: var(--ink-faded); border-radius: 4px; }
+    /* Áreas de navegação */
+    .nav-area {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 35%;
+      z-index: 20;
+      cursor: pointer;
+      touch-action: none;
+    }
+    .nav-left { left: 0; }
+    .nav-right { right: 0; }
+    .nav-area::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 40px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 4px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .nav-left::after { left: 8px; background: linear-gradient(to right, rgba(255,255,255,0.05), transparent); }
+    .nav-right::after { right: 8px; background: linear-gradient(to left, rgba(255,255,255,0.05), transparent); }
+    .nav-area:hover::after { opacity: 1; }
+    @media (hover: none) { .nav-area::after { display: none; } }
+  </style>
+</head>
+<body>
+<div class="book-wrapper" id="bookWrapper">
+  <div class="book" id="book">
+
+    <!-- ===== CAPA (0) ===== -->
+    <section class="page page-cover" data-index="0">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+        <div class="cover-ornament">✦ ✦ ✦</div>
+        <h1>Bestiário<br>do Caçador</h1>
+        <p class="subtitle" style="color:#b89a68;">Observações sobre animais, rastros e sobrevivência</p>
+        <div class="rule"></div>
+        <p class="credit" style="margin-top:8px;">Por <strong style="color:#d4af37;">Altheris Vonn</strong></p>
+        <div class="cover-ornament" style="margin-top:12px;">✦ ✦ ✦</div>
+      </div>
+    </section>
+
+    <!-- ===== PÁGINA INICIAL (1) ===== -->
+    <section class="page" data-index="1">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">i</div>
+      <p class="quote" style="font-size:20px; margin-top:30px;">
+        “A floresta não odeia o homem.<br>Ela apenas testa quem entra nela.”
+        <cite>— Altheris Vonn</cite>
+      </p>
+      <div class="rule" style="width:40px;"></div>
+      <p class="credit" style="font-size:15px; line-height:1.8;">
+        Feito pelo caçador, lenhador e estudioso<br>
+        <strong style="font-size:17px;">Altheris Vonn</strong>
+      </p>
+      <div class="rule" style="width:40px;"></div>
+      <p style="font-size:14px; color:var(--ink-faded); text-align:center; max-width:80%; margin:12px auto;">
+        Este livro contém observações coletadas ao longo de anos de caminhadas por florestas, pântanos e montanhas.
+      </p>
+      <div class="coffee-stain" style="width:80px; height:60px; bottom:20px; right:10px;"></div>
+    </section>
+
+    <!-- ===== INTRODUÇÃO (2) ===== -->
+    <section class="page" data-index="2">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">1</div>
+      <h2 class="chapter">Introdução <span class="deco">✦ ✦ ✦</span></h2>
+      <p>Meu nome é Altheris Vonn. Sou lenhador, caçador e, nas horas vagas, um escriba de bichos.</p>
+      <p>Este livro é sobre os animais que encontrei nas florestas, montanhas e pântanos. Não são monstros — são criaturas reais, com carne, ossos e hábitos próprios.</p>
+      <p>Escrevi para ajudar quem precisa caçar para comer, vender ou sobreviver. Cada animal tem suas manhas: uns são rápidos, outros venenosos, alguns valem muito, outros nem tanto.</p>
+      <p>O conhecimento pesa menos que uma armadura e salva mais vidas. Aprenda a ler os rastros, a respeitar o perigo e a guardar o que é útil.</p>
+      <p style="text-align:right; margin-top:12px; font-style:italic;">— Altheris Vonn</p>
+      <div class="coffee-stain" style="width:60px; height:50px; top:40px; right:15px;"></div>
+    </section>
+
+    <!-- ===== TABELA ZELL (3) ===== -->
+    <section class="page" data-index="3">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">2</div>
+      <h2 class="chapter">Sistema Econômico <span class="deco">✦ ✦ ✦</span></h2>
+      <p style="font-size:14px; text-align:center; color:var(--ink-faded);">— Escala ZELL —</p>
+      <p style="font-size:13px; margin-bottom:8px;">O ZELL é a moeda de prata de Ponta Fria. Uma refeição e uma noite de pousada custam cerca de 10 ZELL.</p>
+      <div class="table-wrap">
+        <table class="table-zell">
+          <tr><th>Valor (ZELL)</th><th>Significado</th></tr>
+          <tr><td>1</td><td>Quase sem valor (um pão)</td></tr>
+          <tr><td>5</td><td>Pequeno gasto (uma cerveja)</td></tr>
+          <tr><td>10</td><td>Dinheiro comum diário</td></tr>
+          <tr><td>30</td><td>Valor relevante (uma faca boa)</td></tr>
+          <tr><td>100</td><td>Item caro (um arco simples)</td></tr>
+          <tr><td>300</td><td>Equipamento sério (armadura de couro)</td></tr>
+          <tr><td>1.000</td><td>Fortuna comum (um cavalo)</td></tr>
+          <tr><td>10.000+</td><td>Riqueza absurda (uma casa)</td></tr>
+        </table>
+      </div>
+      <p style="font-size:12px; color:var(--ink-faded); text-align:center; margin-top:6px;">— Os preços nas fichas seguem esta escala. —</p>
+      <div class="coffee-stain" style="width:70px; height:50px; bottom:30px; left:10px;"></div>
+    </section>
+
+    <!-- ===== SUMÁRIO (4) ===== -->
+    <section class="page" data-index="4">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">3</div>
+      <h2 class="chapter">Sumário <span class="deco">✦ ✦ ✦</span></h2>
+      <div style="column-count:2; column-gap:20px; font-size:14px; line-height:2.2; margin-top:6px;">
+        <div>1. Lobo Cinzento</div><div>2. Javali Negro</div>
+        <div>3. Urso-Cinzento</div><div>4. Raposa-Escarlate</div>
+        <div>5. Cobra de Vidro</div><div>6. Corvo de Ossos</div>
+        <div>7. Veado Lunar</div><div>8. Aranha Ferrugem</div>
+        <div>9. Crocodilo do Pântano</div><div>10. Grifo Menor</div>
+        <div>11. Lontra-Gigante</div><div>12. Bisão-Trovão</div>
+      </div>
+      <p style="margin-top:16px; font-size:12px; color:var(--ink-faded); text-align:center; letter-spacing:1px;">― Siga com calma. Cada bicho tem sua história. ―</p>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- ANIMAIS (5 a 16) – com anedotas pessoais e rabiscos -->
+    <!-- ============================================================ -->
+
+    <!-- 1. LOBO (5) -->
+    <section class="page" data-index="5">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">4</div>
+      <h3 class="animal-name"><span class="track-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="9" r="1.5" fill="currentColor"/><circle cx="16" cy="9" r="1.5" fill="currentColor"/><path d="M8 14 Q12 17 16 14" fill="none" stroke="currentColor" stroke-width="1.2"/></svg></span>Lobo Cinzento</h3>
+      <span class="scientific">Canis Ferrox</span>
+      <div class="info-grid">
+        <span><span class="label">Habitat:</span> Florestas frias, campos</span>
+        <span><span class="label">Perigo:</span> Médio (alcateia)</span>
+        <span><span class="label">Extraçao:</span> 2h</span>
+        <span><span class="label">Domesticável:</span> Não</span>
+      </div>
+      <p>Caça em grupos. O primeiro que aparece é o distrator — os outros atacam pelas costas. Faro excelente e visão noturna.</p>
+      <div class="table-wrap">
+        <table><tr><th>Parte</th><th>Valor (ZELL)</th></tr>
+        <tr><td>Pele boa</td><td>4</td></tr><tr><td>Presas (par)</td><td>2</td></tr>
+        <tr><td>Garras (par)</td><td>1</td></tr><tr><td>Olhos intactos</td><td>1</td></tr></table>
+      </div>
+      <div class="note">
+        “Uma vez, um lobo me seguiu por três dias. Só parei quando entrei num rio gelado. Ele ficou na margem, me olhou, e foi embora. Aprendi que eles têm paciência.”
+        <span class="sign">— A.V.</span>
+      </div>
+      <p style="font-size:12px; margin-top:4px; color:var(--ink-faded);"><strong>Pegada:</strong> Similar à de cão, mas com marcas de garra.</p>
+      <!-- Rabisco -->
+      <div class="doodle" style="bottom:10px; right:10px; width:40px; height:30px;">
+        <svg viewBox="0 0 40 30"><path d="M5 20 Q15 5 25 20 T35 15" fill="none" stroke="var(--ink-faded)" stroke-width="0.8" opacity="0.3"/></svg>
+      </div>
+    </section>
+
+    <!-- 2. JAVALI (6) -->
+    <section class="page" data-index="6">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">5</div>
+      <h3 class="animal-name"><span class="track-icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="14" rx="8" ry="5" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="16" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1"/></svg></span>Javali Negro</h3>
+      <span class="scientific">Sus Mortem</span>
+      <div class="info-grid">
+        <span><span class="label">Habitat:</span> Matagais, florestas úmidas</span>
+        <span><span class="label">Perigo:</span> Alto (investida)</span>
+        <span><span class="label">Extraçao:</span> 1h30</span>
+        <span><span class="label">Domesticável:</span> Parcial</span>
+      </div>
+      <p>Onívoro, agressivo quando ferido. Fêmeas com filhotes são mais perigosas que machos.</p>
+      <div class="table-wrap">
+        <table><tr><th>Parte</th><th>Valor (ZELL)</th></tr>
+        <tr><td>Carne fresca</td><td>6</td></tr><tr><td>Presas</td><td>2</td></tr><tr><td>Couro</td><td>5</td></tr></table>
+      </div>
+      <div class="note">
+        “Quase perdi o braço esquerdo para um javali. Ele fingiu que ia fugir, virou e veio na minha direção. Desde então, nunca mais subestimo a velocidade deles.”
+        <span class="sign">— A.V.</span>
+      </div>
+      <p style="font-size:12px; margin-top:4px; color:var(--ink-faded);"><strong>Pegada:</strong> Arredondada, com dois cascos e dois digitos atrás.</p>
+    </section>
+
+    <!-- 3. URSO (7) -->
+    <section class="page" data-index="7">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">6</div>
+      <h3 class="animal-name"><span class="track-icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="14" rx="9" ry="6" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="7" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="17" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="1"/></svg></span>Urso-Cinzento</h3>
+      <span class="scientific">Ursus Ferox</span>
+      <div class="info-grid">
+        <span><span class="label">Habitat:</span> Montanhas >800m</span>
+        <span><span class="label">Perigo:</span> Muito Alto</span>
+        <span><span class="label">Extraçao:</span> 4h</span>
+        <span><span class="label">Domesticável:</span> Não</span>
+      </div>
+      <p>Solitário. Evita humanos, mas ataca se surpreendido ou com filhotes. A gordura de ursos que comem salmão é mais amarelada e vale mais.</p>
+      <div class="table-wrap">
+        <table><tr><th>Parte</th><th>Valor (ZELL)</th></tr>
+        <tr><td>Couro</td><td>40</td></tr><tr><td>Garras (par)</td><td>8</td></tr><tr><td>Gordura (pote)</td><td>15</td></tr></table>
+      </div>
+      <div class="note">
+        “Nunca corra de um urso. Eles correm mais que você. Finja que está morto — ou, melhor, finja que não é interessante. Funcionou comigo uma vez.”
+        <span class="sign">— A.V.</span>
+      </div>
+      <p style="font-size:12px; margin-top:4px; color:var(--ink-faded);"><strong>Pegada:</strong> Cinco dedos, garras de até 6 cm. Dianteira mais larga.</p>
+    </section>
+
+    <!-- 4. RAPOSA (8) -->
+    <section class="page" data-index="8">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">7</div>
+      <h3 class="animal-name"><span class="track-icon"><svg viewBox="0 0 24 24"><polygon points="12,3 7,10 10,10 7,18 10,16 12,20 14,16 17,18 14,10 17,10" fill="none" stroke="currentColor" stroke-width="1.2"/></svg></span>Raposa-Escarlate</h3>
+      <span class="scientific">Vulpes Rubra</span>
+      <div class="info-grid">
+        <span><span class="label">Habitat:</span> Bosques, campos queimados</span>
+        <span><span class="label">Perigo:</span> Nenhum</span>
+        <span><span class="label">Extraçao:</span> 30 min</span>
+        <span><span class="label">Domesticável:</span> Não</span>
+      </div>
+      <p>Noturna, arisca. Vive em casais. A pele comum vale 25 ZELL, mas a <strong>Raposa-Carmim</strong> (rara) vale 120 ZELL.</p>
+      <div class="table-wrap">
+        <table><tr><th>Parte</th><th>Valor (ZELL)</th></tr>
+        <tr><td>Pelo comum</td><td>25</td></tr><tr><td>Cauda</td><td>10</td></tr><tr><td>Pelo Carmim (raro)</td><td>120</td></tr></table>
+      </div>
+      <div class="note">
+        “Caçadores matam dezenas de escarlates para achar uma Carmim, deixando a carne apodrecer. A população caiu 70% em dez anos. Isso não é caça, é nojo.”
+        <span class="sign">— A.V.</span>
+      </div>
+      <p style="font-size:12px; margin-top:4px; color:var(--ink-faded);"><strong>Pegada:</strong> Pequena, quatro dedos, garra fina. Anda em linha reta.</p>
+    </section>
+
+    <!-- 5. COBRA (9) -->
+    <section class="page" data-index="9">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">8</div>
+      <h3 class="animal-name"><span class="track-icon"><svg viewBox="0 0 24 24"><path d="M4 18 Q10 6 20 14" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="19" cy="13" r="1.5" fill="currentColor"/></svg></span>Cobra de Vidro</h3>
+      <span class="scientific">Serpens Vitrum</span>
+      <div class="info-grid">
+        <span><span class="label">Habitat:</span> Desertos, cavernas quentes</span>
+        <span><span class="label">Perigo:</span> Veneno rápido</span>
+        <span><span class="label">Extraçao:</span> 20 min (veneno)</span>
+        <span><span class="label">Domesticável:</span> Não</span>
+      </div>
+      <p>Escamas translúcidas, fica imóvel por horas. Veneno usado em poções paralisantes.</p>
+      <div class="table-wrap">
+        <table><tr><th>Parte</th><th>Valor (ZELL)</th></tr>
+        <tr><td>Veneno (frasco)</td><td>20</td></tr><tr><td>Escamas intactas</td><td>8</td></tr><tr><td>Presas</td><td>3</td></tr></table>
+      </div>
+      <div class="note">
+        “Eu pisei perto de uma cobra de vidro sem ver. Ela não se mexeu. Só depois que passei, vi o brilho das escamas. Ela me deixou viver. Aprendi a respeitar o silêncio.”
+        <span class="sign">— A.V.</span>
+      </div>
+    </section>
+
+    <!-- 6. CORVO (10) -->
+    <section class="page" data-index="10">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">9</div>
+      <h3 class="animal-name"><span class="track-icon"><svg viewBox="0 0 24 24"><path d="M6 16 L10 10 L14 10 L18 16 L16 20 L8 20 Z" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="10" cy="12" r="1" fill="currentColor"/><circle cx="14" cy="12" r="1" fill="currentColor"/></svg></span>Corvo de Ossos</h3>
+      <span class="scientific">Corvus Mortis</span>
+      <div class="info-grid">
+        <span><span class="label">Habitat:</span> Campos de batalha, cemitérios</span>
+        <span><span class="label">Perigo:</span> Baixo</span>
+        <span><span class="label">Extraçao:</span> 20 min</span>
+        <span><span class="label">Domesticável:</span> Não</span>
+      </div>
+      <p>Ave necrófaga inteligente. Segue grupos esperando mortos. Penas usadas para escrita.</p>
+      <div class="table-wrap">
+        <table><tr><th>Parte</th><th>Valor (ZELL)</th></tr>
+        <tr><td>Penas escuras</td><td>1 (cada)</td></tr><tr><td>Olhos preservados</td><td>5</td></tr><tr><td>Bico</td><td>2</td></tr></table>
+      </div>
+      <div class="note">
+        “Um corvo me seguiu uma vez por uma semana. Toda manhã, ele estava no mesmo galho. Quando matei um veado, ele comeu os restos. Depois disso, nunca mais me seguiu. Eles sabem quando você é útil.”
+        <span class="sign">— A.V.</span>
+      </div>
+    </section>
+
+    <!-- 7. VEADO LUNAR (11) -->
+    <section class="page" data-index="11">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">10</div>
+      <h3 class="animal-name"><span class="track-icon"><svg viewBox="0 0 24 24"><path d="M10 4 L12 8 L14 4" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="9" cy="9" r="1" fill="currentColor" opacity="0.5"/><circle cx="15" cy="9" r="1" fill="currentColor" opacity="0.5"/></svg></span>Veado Lunar</h3>
+      <span class="scientific">Cervus Lunaris</span>
+      <div class="info-grid">
+        <span><span class="label">Habitat:</span> Clareiras onde a lua bate</span>
+        <span><span class="label">Perigo:</span> Nenhum (mau presságio)</span>
+        <span><span class="label">Extraçao:</span> Serrar chifres vivo</span>
+        <span><span class="label">Domesticável:</span> Não</span>
+      </div>
+      <p>Pacífico, foge ao metal. Chifres brilhantes, lágrimas cristalizadas. Matar um atrai maldições.</p>
+      <div class="table-wrap">
+        <table><tr><th>Parte</th><th>Valor (ZELL)</th></tr>
+        <tr><td>Chifres completos</td><td>120</td></tr><tr><td>Pelo raro</td><td>15</td></tr><tr><td>Lágrimas cristalizadas</td><td>40</td></tr></table>
+      </div>
+      <div class="note">
+        “Já vi mercenários matarem um Veado Lunar. A floresta ao redor secou em duas semanas. Não mate o que não entende.”
+        <span class="sign">— A.V.</span>
+      </div>
+      <p style="font-size:12px; margin-top:4px; color:var(--ink-faded);"><strong>Pegada:</strong> Casco fendido com pontas arredondadas; rastro de musgo que some ao amanhecer.</p>
+    </section>
+
+    <!-- 8. ARANHA (12) -->
+    <section class="page" data-index="12">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">11</div>
+      <h3 class="animal-name"><span class="track-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M12 9 L12 4 M12 15 L12 20 M9 12 L4 12 M15 12 L20 12" stroke="currentColor" stroke-width="1"/><path d="M9 9 L6 6 M15 9 L18 6 M9 15 L6 18 M15 15 L18 18" stroke="currentColor" stroke-width="0.8" opacity="0.5"/></svg></span>Aranha Ferrugem</h3>
+      <span class="scientific">Aracnus Rubrum</span>
+      <div class="info-grid">
+        <span><span class="label">Habitat:</span> Ruínas, cavernas</span>
+        <span><span class="label">Perigo:</span> Veneno corrosivo</span>
+        <span><span class="label">Extraçao:</span> 1h (seda)</span>
+        <span><span class="label">Domesticável:</span> Não (algumas bruxas criam)</span>
+      </div>
+      <p>Tece teias altas e cai sobre a presa. Seda forte e valiosa; veneno dissolve metais.</p>
+      <div class="table-wrap">
+        <table><tr><th>Parte</th><th>Valor (ZELL)</th></tr>
+        <tr><td>Seda refinada</td><td>18</td></tr><tr><td>Veneno (frasco)</td><td>12</td></tr><tr><td>Olhos (par)</td><td>1</td></tr></table>
+      </div>
+      <div class="note">
+        “Nunca olhe apenas para frente em uma ruína. Olhe para cima. O chão limpo é a maior armadilha — ela já varreu tudo.”
+        <span class="sign">— A.V.</span>
+      </div>
+    </section>
+
+    <!-- 9. CROCODILO (13) -->
+    <section class="page" data-index="13">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">12</div>
+      <h3 class="animal-name"><span class="track-icon"><svg viewBox="0 0 24 24"><path d="M4 16 Q12 6 20 16" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 16 L8 20 L16 20 L18 16" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="9" cy="12" r="1.5" fill="currentColor"/><circle cx="15" cy="12" r="1.5" fill="currentColor"/></svg></span>Crocodilo do Pântano</h3>
+      <span class="scientific">Mordrak Paludis</span>
+      <div class="info-grid">
+        <span><span class="label">Habitat:</span> Pântanos, rios escuros</span>
+        <span><span class="label">Perigo:</span> Mordida devastadora</span>
+        <span><span class="label">Extraçao:</span> 3h</span>
+        <span><span class="label">Domesticável:</span> Não</span>
+      </div>
+      <p>Fica imóvel na água, camuflado. Ataque rápido e letal. Couro grosso para armaduras.</p>
+      <div class="table-wrap">
+        <table><tr><th>Parte</th><th>Valor (ZELL)</th></tr>
+        <tr><td>Couro grosso</td><td>35</td></tr><tr><td>Dentes</td><td>2 (cada)</td></tr><tr><td>Óleo corporal</td><td>12</td></tr></table>
+      </div>
+      <div class="note">
+        “Uma vez, eu estava no pântano e a água parou de se mexer. Fiquei imóvel por uma hora. Quando mexi o pé, o crocodilo deu um bote onde eu estava. Saltei para trás. Aprendi a confiar no silêncio.”
+        <span class="sign">— A.V.</span>
+      </div>
+    </section>
+
+    <!-- 10. GRIFO (14) -->
+    <section class="page" data-index="14">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">13</div>
+      <h3 class="animal-name"><span class="track-icon"><svg viewBox="0 0 24 24"><path d="M4 8 L8 6 L12 4 L16 6 L20 8 L18 12 L16 16 L12 18 L8 16 L6 12 Z" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M12 4 L12 10 L16 14" stroke="currentColor" stroke-width="1"/></svg></span>Grifo Menor</h3>
+      <span class="scientific">Griphus Minor</span>
+      <div class="info-grid">
+        <span><span class="label">Habitat:</span> Montanhas altas</span>
+        <span><span class="label">Perigo:</span> Alto (protege ninho)</span>
+        <span><span class="label">Extraçao:</span> 1h (penas)</span>
+        <span><span class="label">Domesticável:</span> Não</span>
+      </div>
+      <p>Voador rápido, visão aguçada. Ataca qualquer um que chegue perto do ninho. Garras e penas muito valorizadas.</p>
+      <div class="table-wrap">
+        <table><tr><th>Parte</th><th>Valor (ZELL)</th></tr>
+        <tr><td>Penas grandes</td><td>8 (cada)</td></tr><tr><td>Garras (par)</td><td>15</td></tr><tr><td>Bico intacto</td><td>10</td></tr></table>
+      </div>
+      <div class="note">
+        “Eu estava escalando um penhasco e ouvi um grito agudo. O grifo estava acima de mim. Ele não atacou — apenas me observou. Depois que desci, ele voltou para o ninho. Eles só atacam se você ameaça os filhotes.”
+        <span class="sign">— A.V.</span>
+      </div>
+    </section>
+
+    <!-- 11. LONTRA (15) -->
+    <section class="page" data-index="15">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">14</div>
+      <h3 class="animal-name"><span class="track-icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="14" rx="7" ry="4" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="11" r="1.5" fill="currentColor"/><circle cx="16" cy="11" r="1.5" fill="currentColor"/><path d="M12 14 L12 18" stroke="currentColor" stroke-width="1"/></svg></span>Lontra-Gigante</h3>
+      <span class="scientific">Lutra Maxima</span>
+      <div class="info-grid">
+        <span><span class="label">Habitat:</span> Rios de correnteza</span>
+        <span><span class="label">Perigo:</span> Baixo (em bando)</span>
+        <span><span class="label">Extraçao:</span> 1h</span>
+        <span><span class="label">Domesticável:</span> Não</span>
+      </div>
+      <p>Vivem em bandos de até 8. A pele é a única que não molha — usada para luvas de mergulho.</p>
+      <div class="table-wrap">
+        <table><tr><th>Parte</th><th>Valor (ZELL)</th></tr>
+        <tr><td>Pelagem</td><td>18</td></tr><tr><td>Dentes</td><td>3 (cada)</td></tr></table>
+      </div>
+      <div class="note">
+        “Elas atacam jacarés em grupo. Se vir uma lontra sozinha, desconfie — o bando está por perto.”
+        <span class="sign">— A.V.</span>
+      </div>
+      <!-- Rabisco -->
+      <div class="doodle" style="top:10px; right:10px; width:30px; height:30px;">
+        <svg viewBox="0 0 30 30"><path d="M5 5 Q15 25 25 5" fill="none" stroke="var(--ink-faded)" stroke-width="0.6" opacity="0.2"/></svg>
+      </div>
+    </section>
+
+    <!-- 12. BISÃO (16) -->
+    <section class="page" data-index="16">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">15</div>
+      <h3 class="animal-name"><span class="track-icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="15" rx="9" ry="5" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="11" r="2" fill="currentColor"/><circle cx="16" cy="11" r="2" fill="currentColor"/></svg></span>Bisão-Trovão</h3>
+      <span class="scientific">Bison Tonitrus</span>
+      <div class="info-grid">
+        <span><span class="label">Habitat:</span> Planícies abertas</span>
+        <span><span class="label">Perigo:</span> Médio (manada)</span>
+        <span><span class="label">Extraçao:</span> 5h</span>
+        <span><span class="label">Domesticável:</span> Não</span>
+      </div>
+      <p>Quando corre, o chão treme a 2 km. A carne alimenta uma vila por uma semana. Chifre moído cura febres.</p>
+      <div class="table-wrap">
+        <table><tr><th>Parte</th><th>Valor (ZELL)</th></tr>
+        <tr><td>Chifres (par)</td><td>45</td></tr><tr><td>Couro cru</td><td>30</td></tr><tr><td>Carne (arroba)</td><td>15</td></tr></table>
+      </div>
+      <div class="note">
+        “O chifre moído é remédio barato para febre. Mas cuidado: a manada inteira pode vir atrás de você se ferir um deles.”
+        <span class="sign">— A.V.</span>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SOBRE O AUTOR – PARTE 1 (17) -->
+    <!-- ============================================================ -->
+    <section class="page" data-index="17">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">16</div>
+      <h2 class="chapter">Sobre o Autor <span class="deco">✦ ✦ ✦</span></h2>
+      <p>Eu, Altheris Vonn, nasci na <strong>Cidade das Masmorras</strong> — hoje chamada de <strong>Cidade da Torre</strong>, por causa da torre do miserável do Mago Louco. Lá cresci, vi coisas estranhas e aprendi que a floresta não perdoa quem desrespeita seus rastros.</p>
+      <p>Sou lenhador, caçador, estudioso e, nas horas vagas, um escriba amador. Gosto de cortar madeira, sentir o cheiro da serragem e anotar tudo sobre os animais. A natureza tem uma ordem silenciosa, e entender isso me trouxe mais paz do que qualquer batalha.</p>
+      <p>Conheci pessoas notáveis. Tenho amigos como <strong>Elyon</strong>, o <strong>Homem da Nevasca</strong> (também chamado de <strong>Homem da Máscara</strong> e, por alguns, <strong>Homem da Caravana</strong> — ele tem muitos nomes), e o <strong>Wick</strong>, aquele que lembra o sujeito do filme que mataram o cachorro dele. Com eles vivi aventuras complexas e perigosas, mas sempre preferi a paz da floresta e o estudo dos bichos.</p>
+      <!-- Rabisco -->
+      <div class="doodle" style="bottom:10px; left:10px; width:50px; height:20px;">
+        <svg viewBox="0 0 50 20"><path d="M5 10 Q15 2 25 10 T45 10" fill="none" stroke="var(--ink-faded)" stroke-width="0.8" opacity="0.2"/></svg>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SOBRE O AUTOR – PARTE 2 (18) -->
+    <!-- ============================================================ -->
+    <section class="page" data-index="18">
+      <div class="inner-border"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div class="center-fold"></div>
+      <div class="folio">17</div>
+      <h2 class="chapter">Continuação <span class="deco">✦ ✦ ✦</span></h2>
+      <p>Mais do que tudo, porém, amo minha esposa. Ela é a razão de eu querer uma vida pacata, longe das confusões. Sonho em ter uma filha com ela, para que um dia eu possa ensinar a ler os rastros e a respeitar cada criatura. Afinal, o verdadeiro caçador não é o que mais mata, mas o que entende o que está ao seu redor.</p>
+      <p style="margin-top:8px; font-style:italic; font-size:14px;">“Se você chegou até aqui e comprou este livro, é porque também sente esse amor pela natureza. E é isso que faz um bom caçador.”</p>
+      <p style="text-align:right; font-size:13px; margin-top:4px;">— Altheris Vonn</p>
+      <p style="font-size:13px; color:var(--ink-faded); margin-top:8px; border-top:1px solid rgba(74,60,40,0.15); padding-top:8px;">
+        <em>Nota do autor:</em> Este livro ainda está em andamento. Um dia, talvez, eu termine todas as anotações. Por enquanto, fico com a madeira, a lareira e a companhia da minha esposa.
+      </p>
+      <div class="coffee-stain" style="width:90px; height:70px; bottom:10px; right:5px;"></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- CONTRACAPA (19) -->
+    <!-- ============================================================ -->
+    <section class="page page-cover" data-index="19" style="justify-content:center; text-align:center;">
+      <div class="inner-border" style="border-color:rgba(255,255,255,0.05);"></div>
+      <div class="corner-deco tl">✦</div><div class="corner-deco tr">✦</div>
+      <div class="corner-deco bl">✦</div><div class="corner-deco br">✦</div>
+      <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+        <div class="cover-ornament">✦ ✦ ✦</div>
+        <p style="font-size:18px; color:#d4c4a0; max-width:80%; line-height:1.6; font-style:italic;">
+          “O mundo recompensa caçadores atentos.<br>
+          Nem toda criatura deve ser morta.<br>
+          Algumas apenas esperam que você erre.”
+        </p>
+        <div class="rule" style="width:50px; background:#c4a87a;"></div>
+        <p style="font-size:13px; color:#b89a68; margin-top:12px;">
+          Fim do Bestiário do Caçador<br>
+          <span style="color:#d4af37;">— Altheris Vonn, lenhador e escriba —</span>
+        </p>
+        <div class="cover-ornament" style="margin-top:12px;">✦ ✦ ✦</div>
+      </div>
+    </section>
+
+  </div>
+  <!-- Áreas de navegação -->
+  <div class="nav-area nav-left" id="navLeft"></div>
+  <div class="nav-area nav-right" id="navRight"></div>
+</div>
+
+<script>
+  (function() {
+    const book = document.getElementById('book');
+    const pages = document.querySelectorAll('.page');
+    const total = pages.length;
+    let current = 0;
+    let isAnimating = false;
+
+    function updatePages() {
+      pages.forEach((page, i) => {
+        if (i === current) {
+          page.style.display = 'block';
+          page.style.transform = 'rotateY(0deg)';
+          page.scrollTop = 0;
+        } else {
+          page.style.display = 'none';
+          page.style.transform = 'rotateY(180deg)';
+        }
+      });
+    }
+
+    function goTo(index) {
+      if (isAnimating) return;
+      if (index < 0) index = 0;
+      if (index >= total) index = total - 1;
+      if (index === current) return;
+      isAnimating = true;
+      current = index;
+      book.style.transition = 'transform 0.6s cubic-bezier(0.23, 1, 0.32, 1)';
+      book.style.transform = 'rotateY(0deg)';
+      setTimeout(() => {
+        updatePages();
+        pages[current].scrollTop = 0;
+        isAnimating = false;
+      }, 350);
+    }
+
+    updatePages();
+
+    const leftArea = document.getElementById('navLeft');
+    const rightArea = document.getElementById('navRight');
+
+    function handleNav(e, direction) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (direction === 'left') goTo(current - 1);
+      else goTo(current + 1);
+    }
+
+    leftArea.addEventListener('pointerdown', function(e) { handleNav(e, 'left'); });
+    rightArea.addEventListener('pointerdown', function(e) { handleNav(e, 'right'); });
+    leftArea.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
+    rightArea.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowLeft') goTo(current - 1);
+      if (e.key === 'ArrowRight') goTo(current + 1);
+    });
+    document.addEventListener('dblclick', function(e) { e.preventDefault(); }, { passive: false });
+
+    function adjustHeight() {
+      const wrapper = document.getElementById('bookWrapper');
+      const maxH = window.innerHeight - 30;
+      const minH = 480;
+      let h = Math.min(maxH, 680);
+      h = Math.max(h, minH);
+      wrapper.style.height = h + 'px';
+    }
+    window.addEventListener('resize', adjustHeight);
+    adjustHeight();
+
+    window.goToPage = goTo;
+  })();
+</script>
+</body>
+</html>
