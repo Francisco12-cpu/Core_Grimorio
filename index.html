@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C.O.R.E.</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90' fill='%23d4af37'%3Eᚱ%3C/text%3E%3C/svg%3E">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=IM+Fell+English:ital@0;1&display=swap');
+
+  :root {
+    --bg: #0d0a07;
+    --card-bg: #e8d5b5;
+    --card-border: #b89e6e;
+    --card-text: #3a2a1a;
+    --gold: #d4af37;
+    --gold-dark: #8B6914;
+    --red: #8b1a1a;
+    --fonte-titulo: 'Cinzel', serif;
+    --fonte-texto: 'IM Fell English', serif;
+    --brilho: 1.0;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html, body {
+    min-height: 100%;
+    background: var(--bg);
+    font-family: var(--fonte-texto);
+    color: var(--card-text);
+    overflow-x: hidden;
+  }
+
+  body {
+    position: relative;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(212,175,55,0.08) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(139,26,26,0.15) 0%, transparent 50%),
+      repeating-linear-gradient(45deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 2px, transparent 2px, transparent 6px);
+    transition: opacity 0.5s ease;
+  }
+
+  .textura-fundo {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    opacity: 0.35;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+  }
+
+  .poeira {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  }
+  .poeira span {
+    position: absolute;
+    width: 4px; height: 4px;
+    background: var(--gold);
+    border-radius: 50%;
+    opacity: 0.5;
+    box-shadow: 0 0 8px var(--gold);
+    animation: flutuar 8s infinite alternate ease-in-out;
+  }
+  @keyframes flutuar {
+    from { transform: translateY(0) translateX(0); opacity: 0.2; }
+    to   { transform: translateY(-40vh) translateX(15px); opacity: 0.8; }
+  }
+
+  .runa-decorativa {
+    position: fixed;
+    z-index: 0;
+    pointer-events: none;
+    font-family: var(--fonte-titulo);
+    color: var(--gold);
+    opacity: 0.25;
+    text-shadow: 0 0 10px var(--gold);
+    animation: flutuarRuna 12s infinite alternate ease-in-out;
+    user-select: none;
+  }
+  @keyframes flutuarRuna {
+    from { transform: translateY(0) rotate(0deg) scale(1); opacity: 0.15; }
+    to   { transform: translateY(-20px) rotate(10deg) scale(1.2); opacity: 0.4; }
+  }
+
+  /* Animação de entrada simplificada */
+  .intro-runa-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 30;
+    display: flex;
+    gap: 15px;
+    pointer-events: none;
+    animation: introSumir 3s forwards;
+  }
+  .intro-runa {
+    font-family: var(--fonte-titulo);
+    font-size: 4rem;
+    color: var(--gold);
+    text-shadow: 0 0 40px rgba(212,175,55,1);
+    opacity: 0;
+    animation: introRuna 2.2s forwards;
+  }
+  .intro-runa:nth-child(1) { animation-delay: 0.0s; }
+  .intro-runa:nth-child(2) { animation-delay: 0.25s; }
+  .intro-runa:nth-child(3) { animation-delay: 0.5s; }
+  .intro-runa:nth-child(4) { animation-delay: 0.75s; }
+
+  @keyframes introRuna {
+    0% { opacity: 0; transform: scale(0.2) rotate(-90deg); }
+    15% { opacity: 1; transform: scale(1.1) rotate(5deg); }
+    30% { opacity: 1; transform: scale(1) rotate(0); }
+    80% { opacity: 1; transform: scale(1) rotate(0); text-shadow: 0 0 60px rgba(212,175,55,1); }
+    100% { opacity: 0; transform: scale(1.3); text-shadow: 0 0 0 transparent; }
+  }
+  @keyframes introSumir {
+    0%, 90% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.3); }
+  }
+
+  .pagina {
+    position: relative; z-index: 2;
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 5vh 5vw 8vh;
+    opacity: 0;
+    animation: aparecer 0.8s ease 3s forwards;
+  }
+  @keyframes aparecer {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--gold-dark);
+    position: relative;
+  }
+  header::before, header::after {
+    content: "❦";
+    position: absolute;
+    bottom: -1.1em;
+    color: var(--gold);
+    font-size: 1.8rem;
+    text-shadow: 0 0 12px rgba(212,175,55,0.8);
+  }
+  header::before { left: 0; }
+  header::after { right: 0; }
+
+  .rotulo-topo {
+    font-family: var(--fonte-titulo);
+    font-size: 0.85rem;
+    letter-spacing: 6px;
+    color: var(--gold-dark);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  h1 {
+    font-family: var(--fonte-titulo);
+    font-weight: 900;
+    font-size: clamp(2.8rem, 10vw, 4.5rem);
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(212,175,55,0.6);
+    letter-spacing: 5px;
+    line-height: 1.1;
+  }
+
+  .lista-itens {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  .vazio {
+    text-align: center;
+    color: var(--gold-dark);
+    font-style: italic;
+    font-size: 1.2rem;
+    padding: 2rem;
+    opacity: 0.7;
+  }
+
+  .item {
+    display: block;
+    background: var(--card-bg);
+    color: var(--card-text);
+    text-decoration: none;
+    padding: 1.3rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5),
+                inset 0 0 20px rgba(255,255,240,0.4);
+    position: relative;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+    border: 1px solid var(--card-border);
+    overflow: hidden;
+    transform-style: preserve-3d;
+  }
+  .item:hover {
+    transform: perspective(800px) rotateY(-2deg) translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.7), 0 0 35px rgba(212,175,55,0.8);
+  }
+  .item-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .item-rotulo {
+    font-family: var(--fonte-titulo);
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    color: var(--gold-dark);
+    text-transform: uppercase;
+  }
+  .item-titulo {
+    font-family: var(--fonte-titulo);
+    font-weight: 700;
+    font-size: 1.35rem;
+    color: #4a2c0f;
+  }
+  .item-status {
+    font-size: 0.7rem;
+    letter-spacing: 1.5px;
+    color: #ffffff;
+    background: rgba(0,0,0,0.4);
+    padding: 2px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+  .item-desc {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #5a4025;
+    font-style: italic;
+  }
+  .item-seta {
+    position: absolute;
+    right: 1.5rem; top: 50%;
+    transform: translateY(-50%);
+    color: rgba(0,0,0,0.25);
+    font-size: 1.2rem;
+  }
+  .item:hover .item-seta {
+    color: var(--red);
+    transform: translateY(-50%) translateX(4px);
+  }
+
+  /* Modais */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 20;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+  }
+  .modal-overlay.ativo { display: flex; }
+  .modal {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 10px;
+    max-width: 440px;
+    width: 92%;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(212,175,55,0.5);
+    border: 2px solid var(--gold-dark);
+  }
+  .modal h3 {
+    font-family: var(--fonte-titulo);
+    color: #4a2c0f;
+    margin-bottom: 0.5rem;
+  }
+  .input-senha {
+    font-family: var(--fonte-titulo);
+    font-size: 2rem;
+    letter-spacing: 10px;
+    min-height: 2.8rem;
+    border-bottom: 2px solid #4a2c0f;
+    margin-bottom: 1.2rem;
+    color: #4a2c0f;
+  }
+  .teclado-runico {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    margin-bottom: 1.5rem;
+  }
+  .runa-btn {
+    background: #e0cba0;
+    border: 1px solid #a3855a;
+    border-radius: 4px;
+    padding: 8px 4px;
+    cursor: pointer;
+    font-family: var(--fonte-titulo);
+    font-size: 1.2rem;
+    color: #4a2c0f;
+  }
+  .runa-btn .runa { display: block; font-size: 1.8rem; }
+  .runa-btn .letra { font-size: 0.7rem; opacity: 0.7; }
+  .modal-botoes { display: flex; gap: 10px; justify-content: center; }
+  .modal-botoes button {
+    font-family: var(--fonte-titulo);
+    padding: 8px 18px;
+    border: 1px solid #4a2c0f;
+    background: transparent;
+    color: #4a2c0f;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  /* Editor com tema escuro */
+  .editor-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 25;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+  }
+  .editor-overlay.ativo { display: flex; }
+  .editor {
+    background: #1e130c;
+    padding: 2rem;
+    border-radius: 10px;
+    width: 95%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 1px solid var(--gold-dark);
+    color: #e0cba0;
+    font-family: system-ui, sans-serif;
+  }
+  .editor h3 {
+    text-align: center;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    font-family: var(--fonte-titulo);
+  }
+  .editor label {
+    display: block;
+    margin-top: 0.8rem;
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #d4af37;
+  }
+  .editor input, .editor textarea {
+    width: 100%;
+    padding: 0.6rem;
+    margin-top: 0.3rem;
+    background: #2a1f14;
+    border: 1px solid #8B6914;
+    border-radius: 4px;
+    color: #f0ddb8;
+    font-size: 1rem;
+  }
+  .editor button {
+    margin-top: 1rem;
+    padding: 0.7rem 1.5rem;
+    background: #4a2c0f;
+    color: var(--gold);
+    border: 1px solid var(--gold-dark);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--fonte-titulo);
+  }
+  .editor button:hover { background: #5a4025; }
+  .editor hr { border-color: #8B6914; margin: 1rem 0; }
+
+  @media (max-width: 600px) {
+    .teclado-runico { grid-template-columns: repeat(4, 1fr); }
+    .item-titulo { font-size: 1.15rem; }
+    header::before, header::after { display: none; }
+  }
+
+  @keyframes tremer {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-3px); }
+    100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="textura-fundo"></div>
+<div class="poeira" id="poeira"></div>
+<div id="runasDecorativas"></div>
+
+<div class="intro-runa-container" id="introContainer">
+  <span class="intro-runa">ᚦ</span>
+  <span class="intro-runa">ᛉ</span>
+  <span class="intro-runa">ᛒ</span>
+  <span class="intro-runa">ᚱ</span>
+</div>
+
+<div class="pagina" id="menuPrincipal">
+  <header>
+    <div class="rotulo-topo">Catálogo — Acesso Restrito</div>
+    <h1 id="tituloPrincipal">C.O.R.E.</h1>
+  </header>
+  <div class="lista-itens" id="listaItens"></div>
+</div>
+
+<!-- Modal de aviso -->
+<div class="modal-overlay" id="modalAviso">
+  <div class="modal">
+    <h3>Aviso</h3>
+    <p id="textoAviso"></p>
+    <div class="modal-botoes">
+      <button id="btnContinuarAviso">Continuar</button>
+      <button id="btnCancelarAviso">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de senha -->
+<div class="modal-overlay" id="modalSenha">
+  <div class="modal">
+    <h3>Cadeado Rúnico</h3>
+    <p>Digite as letras ou clique nas runas.</p>
+    <div class="input-senha" id="inputSenha"></div>
+    <div class="teclado-runico" id="tecladoRunico"></div>
+    <div class="modal-botoes">
+      <button id="btnCancelarSenha">Cancelar</button>
+      <button id="btnConfirmarSenha">Abrir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Editor do Mestre -->
+<div class="editor-overlay" id="editorMestre">
+  <div class="editor">
+    <h3>Editor do Mago Louco</h3>
+    <div id="editorConteudo"></div>
+    <button id="btnSalvarLocal">Salvar no Navegador</button>
+    <button id="btnBaixarJSON">Baixar JSON</button>
+    <button id="btnFecharEditor">Fechar</button>
+  </div>
+</div>
+
+<script>
+  // Configuração padrão (sem palavras decorativas, sem rodapé, sem música)
+  const CONFIG_PADRAO = {
+    menu: {
+      titulo: "C.O.R.E.",
+      corPrimaria: "#d4af37",
+      corSecundaria: "#8b1a1a",
+      tempoGlitch: 5000,
+      senhaMestre: "NAUTILUS",
+      brilho: 1.0
+    },
+    itens: []
+  };
+
+  let config = JSON.parse(JSON.stringify(CONFIG_PADRAO));
+  let itensMenu = [];
+
+  const alfabetoRunico = [
+    { runa: 'ᚠ', letra: 'A' }, { runa: 'ᚢ', letra: 'B' }, { runa: 'ᚦ', letra: 'C' },
+    { runa: 'ᚨ', letra: 'D' }, { runa: 'ᚱ', letra: 'E' }, { runa: 'ᚲ', letra: 'F' },
+    { runa: 'ᚷ', letra: 'G' }, { runa: 'ᚹ', letra: 'H' }, { runa: 'ᚺ', letra: 'I' },
+    { runa: 'ᚾ', letra: 'J' }, { runa: 'ᛁ', letra: 'K' }, { runa: 'ᛃ', letra: 'L' },
+    { runa: 'ᛇ', letra: 'M' }, { runa: 'ᛈ', letra: 'N' }, { runa: 'ᛉ', letra: 'O' },
+    { runa: 'ᛊ', letra: 'P' }, { runa: 'ᛏ', letra: 'Q' }, { runa: 'ᛒ', letra: 'R' },
+    { runa: 'ᛖ', letra: 'S' }, { runa: 'ᛗ', letra: 'T' }, { runa: 'ᛚ', letra: 'U' },
+    { runa: 'ᛜ', letra: 'V' }, { runa: 'ᛞ', letra: 'W' }, { runa: 'ᛟ', letra: 'X' },
+    { runa: 'ᛠ', letra: 'Y' }, { runa: 'ᛡ', letra: 'Z' }
+  ];
+  const letraParaRuna = {};
+  alfabetoRunico.forEach(e => letraParaRuna[e.letra] = e.runa);
+
+  // Elementos DOM
+  const listaItens = document.getElementById('listaItens');
+  const tituloPrincipal = document.getElementById('tituloPrincipal');
+  const modalAviso = document.getElementById('modalAviso');
+  const textoAviso = document.getElementById('textoAviso');
+  const modalSenha = document.getElementById('modalSenha');
+  const inputSenha = document.getElementById('inputSenha');
+  const tecladoRunico = document.getElementById('tecladoRunico');
+  const editorMestre = document.getElementById('editorMestre');
+  const editorConteudo = document.getElementById('editorConteudo');
+
+  let itemAtual = null;
+
+  function carregarConfig() {
+    const local = localStorage.getItem('core_config');
+    if (local) {
+      try {
+        config = JSON.parse(local);
+        itensMenu = config.itens || [];
+        aplicarConfig();
+        renderizarMenu();
+        return;
+      } catch(e) {}
+    }
+    fetch('menu.json')
+      .then(res => res.json())
+      .then(data => {
+        config = data;
+        itensMenu = data.itens || [];
+        aplicarConfig();
+        renderizarMenu();
+      })
+      .catch(() => {
+        itensMenu = [];
+        aplicarConfig();
+        renderizarMenu();
+      });
+  }
+
+  function aplicarConfig() {
+    if (config.menu) {
+      tituloPrincipal.textContent = config.menu.titulo || 'C.O.R.E.';
+      document.documentElement.style.setProperty('--gold', config.menu.corPrimaria || '#d4af37');
+      document.documentElement.style.setProperty('--red', config.menu.corSecundaria || '#8b1a1a');
+      document.documentElement.style.setProperty('--gold-dark', '#8B6914');
+      document.documentElement.style.setProperty('--brilho', config.menu.brilho || 1.0);
+    }
+  }
+
+  function gerarRunasDecorativas() {
+    const container = document.getElementById('runasDecorativas');
+    container.innerHTML = '';
+    const numRunas = 40;
+    const simbolos = alfabetoRunico.map(a => a.runa);
+    for (let i = 0; i < numRunas; i++) {
+      const span = document.createElement('span');
+      span.className = 'runa-decorativa';
+      span.textContent = simbolos[Math.floor(Math.random() * simbolos.length)];
+      if (Math.random() < 0.8) {
+        if (Math.random() < 0.5) {
+          span.style.left = (Math.random() < 0.5 ? Math.random() * 15 : 85 + Math.random() * 15) + '%';
+          span.style.top = Math.random() * 100 + '%';
+        } else {
+          span.style.left = Math.random() * 100 + '%';
+          span.style.top = (Math.random() < 0.5 ? Math.random() * 15 : 85 + Math.random() * 15) + '%';
+        }
+      } else {
+        span.style.left = Math.random() * 100 + '%';
+        span.style.top = Math.random() * 100 + '%';
+      }
+      span.style.fontSize = (Math.random() * 2 + 1) + 'rem';
+      span.style.animationDelay = Math.random() * 10 + 's';
+      container.appendChild(span);
+    }
+  }
+
+  let glitchIntervalo = null;
+  function iniciarGlitch() {
+    if (glitchIntervalo) clearInterval(glitchIntervalo);
+    const intervalo = config.menu.tempoGlitch || 5000;
+    function aplicarGlitch() {
+      const alvos = document.querySelectorAll('.item-titulo, .item-desc');
+      if (!alvos.length) return;
+      const el = alvos[Math.floor(Math.random() * alvos.length)];
+      if (!el.dataset.original) el.dataset.original = el.textContent;
+      const original = el.dataset.original;
+      let glitched = '';
+      for (let char of original) {
+        const upper = char.toUpperCase();
+        if (letraParaRuna[upper] && Math.random() < 0.3) {
+          glitched += letraParaRuna[upper];
+        } else {
+          glitched += char;
+        }
+      }
+      el.textContent = glitched;
+      setTimeout(() => {
+        if (el.dataset.original) el.textContent = el.dataset.original;
+      }, 200);
+    }
+    glitchIntervalo = setInterval(aplicarGlitch, intervalo);
+  }
+
+  function renderizarMenu() {
+    listaItens.innerHTML = '';
+    if (itensMenu.length === 0) {
+      listaItens.innerHTML = '<div class="vazio">Nenhum manuscrito encontrado</div>';
+    } else {
+      itensMenu.forEach((item, indice) => {
+        const numero = String(indice + 1).padStart(2, '0');
+        const status = item.senha ? 'Restrito' : 'Disponível';
+        const card = document.createElement('div');
+        card.className = 'item';
+        card.innerHTML = `
+          <div class="item-topo">
+            <span class="item-rotulo">MANUSCRITO ${numero}</span>
+            <span class="item-titulo">${item.titulo}</span>
+            <span class="item-status">${status}</span>
+          </div>
+          <div class="item-desc">${item.descricao || ''}</div>
+          <div class="item-seta">▸</div>
+        `;
+        card.addEventListener('click', () => {
+          tocarClique();
+          abrirItem(item);
+        });
+        listaItens.appendChild(card);
+      });
+    }
+
+    // Manuscrito Mestre
+    const cardMestre = document.createElement('div');
+    cardMestre.className = 'item';
+    cardMestre.innerHTML = `
+      <div class="item-topo">
+        <span class="item-rotulo">MANUSCRITO MESTRE</span>
+        <span class="item-titulo">Manuscrito Mestre</span>
+        <span class="item-status">Restrito</span>
+      </div>
+      <div class="item-desc">Segredos antigos...</div>
+      <div class="item-seta">▸</div>
+    `;
+    cardMestre.addEventListener('click', () => {
+      tocarClique();
+      itemAtual = {
+        titulo: "Manuscrito Mestre",
+        descricao: "Segredos antigos...",
+        arquivo: "",
+        senha: config.menu.senhaMestre || "NAUTILUS",
+        aviso: ""
+      };
+      inputSenha.textContent = '';
+      inputSenha.dataset.letras = '';
+      modalSenha.classList.add('ativo');
+    });
+    listaItens.appendChild(cardMestre);
+
+    iniciarGlitch();
+  }
+
+  function abrirItem(item) {
+    itemAtual = item;
+    if (item.aviso) {
+      textoAviso.textContent = item.aviso;
+      modalAviso.classList.add('ativo');
+    } else {
+      verificarSenha();
+    }
+  }
+
+  function verificarSenha() {
+    if (!itemAtual) return;
+    if (itemAtual.senha) {
+      inputSenha.textContent = '';
+      inputSenha.dataset.letras = '';
+      modalSenha.classList.add('ativo');
+    } else {
+      redirecionar(itemAtual.arquivo);
+    }
+  }
+
+  function redirecionar(arquivo) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:40;display:flex;justify-content:center;align-items:center;font-family:Cinzel;font-size:3rem;color:var(--gold);text-shadow:0 0 30px rgba(212,175,55,0.9);';
+    overlay.textContent = 'ᚦ•ᛉ•ᛒ•ᚱ';
+    document.body.appendChild(overlay);
+    tocarPagina();
+    document.body.style.opacity = '0';
+    setTimeout(() => {
+      if (arquivo) window.location.href = arquivo;
+      else {
+        overlay.remove();
+        document.body.style.opacity = '1';
+      }
+    }, 600);
+  }
+
+  function gerarTecladoRunico() {
+    tecladoRunico.innerHTML = '';
+    alfabetoRunico.forEach(entrada => {
+      const btn = document.createElement('button');
+      btn.className = 'runa-btn';
+      btn.innerHTML = `<span class="runa">${entrada.runa}</span><span class="letra">${entrada.letra}</span>`;
+      btn.addEventListener('click', () => {
+        inputSenha.textContent += entrada.runa;
+        inputSenha.dataset.letras = (inputSenha.dataset.letras || '') + entrada.letra;
+      });
+      tecladoRunico.appendChild(btn);
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (!modalSenha.classList.contains('ativo')) return;
+    const tecla = e.key.toUpperCase();
+    if (e.key === 'Backspace') {
+      inputSenha.textContent = inputSenha.textContent.slice(0, -1);
+      inputSenha.dataset.letras = (inputSenha.dataset.letras || '').slice(0, -1);
+      e.preventDefault();
+      return;
+    }
+    if (letraParaRuna[tecla]) {
+      inputSenha.textContent += letraParaRuna[tecla];
+      inputSenha.dataset.letras = (inputSenha.dataset.letras || '') + tecla;
+      e.preventDefault();
+    }
+  });
+
+  document.getElementById('btnCancelarSenha').addEventListener('click', () => {
+    modalSenha.classList.remove('ativo');
+    itemAtual = null;
+    inputSenha.textContent = '';
+    inputSenha.dataset.letras = '';
+  });
+
+  document.getElementById('btnConfirmarSenha').addEventListener('click', () => {
+    if (!itemAtual) return;
+    const senhaCorreta = itemAtual.senha.toUpperCase();
+    const senhaDigitada = (inputSenha.dataset.letras || '').toUpperCase();
+    if (senhaDigitada === senhaCorreta) {
+      modalSenha.classList.remove('ativo');
+      if (itemAtual.titulo === "Manuscrito Mestre") abrirEditor();
+      else redirecionar(itemAtual.arquivo);
+      itemAtual = null;
+      inputSenha.textContent = '';
+      inputSenha.dataset.letras = '';
+    } else {
+      inputSenha.style.animation = 'tremer 0.3s';
+      setTimeout(() => {
+        inputSenha.style.animation = '';
+        inputSenha.textContent = '';
+        inputSenha.dataset.letras = '';
+      }, 300);
+    }
+  });
+
+  document.getElementById('btnContinuarAviso').addEventListener('click', () => {
+    modalAviso.classList.remove('ativo');
+    verificarSenha();
+  });
+  document.getElementById('btnCancelarAviso').addEventListener('click', () => {
+    modalAviso.classList.remove('ativo');
+    itemAtual = null;
+  });
+
+  function abrirEditor() {
+    editorMestre.classList.add('ativo');
+    renderizarEditor();
+  }
+
+  function renderizarEditor() {
+    editorConteudo.innerHTML = '';
+    const campos = [
+      { label: 'Título do Menu', valor: config.menu.titulo, chave: 'menu.titulo' },
+      { label: 'Cor Primária (dourado)', valor: config.menu.corPrimaria, chave: 'menu.corPrimaria', tipo: 'color' },
+      { label: 'Cor Secundária (vermelho)', valor: config.menu.corSecundaria, chave: 'menu.corSecundaria', tipo: 'color' },
+      { label: 'Tempo do Glitch (ms)', valor: config.menu.tempoGlitch || 5000, chave: 'menu.tempoGlitch', tipo: 'number' },
+      { label: 'Senha do Mestre', valor: config.menu.senhaMestre || 'NAUTILUS', chave: 'menu.senhaMestre' },
+      { label: 'Brilho (0.1 a 2.0)', valor: config.menu.brilho || 1.0, chave: 'menu.brilho', tipo: 'number', step: '0.1' }
+    ];
+    campos.forEach(campo => {
+      const label = document.createElement('label');
+      label.textContent = campo.label;
+      const input = document.createElement('input');
+      input.type = campo.tipo || 'text';
+      if (campo.step) input.step = campo.step;
+      input.value = campo.valor;
+      input.dataset.chave = campo.chave;
+      input.addEventListener('input', () => {
+        const chave = input.dataset.chave;
+        if (chave === 'menu.titulo') config.menu.titulo = input.value;
+        else if (chave === 'menu.corPrimaria') config.menu.corPrimaria = input.value;
+        else if (chave === 'menu.corSecundaria') config.menu.corSecundaria = input.value;
+        else if (chave === 'menu.tempoGlitch') config.menu.tempoGlitch = parseInt(input.value) || 5000;
+        else if (chave === 'menu.senhaMestre') config.menu.senhaMestre = input.value;
+        else if (chave === 'menu.brilho') config.menu.brilho = parseFloat(input.value) || 1.0;
+        aplicarConfig();
+      });
+      label.appendChild(input);
+      editorConteudo.appendChild(label);
+    });
+
+    const hr = document.createElement('hr');
+    editorConteudo.appendChild(hr);
+    const tituloItens = document.createElement('h4');
+    tituloItens.textContent = 'Itens do Menu';
+    editorConteudo.appendChild(tituloItens);
+
+    itensMenu.forEach((item, index) => {
+      const div = document.createElement('div');
+      div.style.border = '1px solid #8B6914';
+      div.style.padding = '1rem';
+      div.style.marginBottom = '1rem';
+      div.innerHTML = `<strong>Item ${index + 1}</strong>`;
+      const camposItem = [
+        { label: 'Título', valor: item.titulo, chave: 'titulo' },
+        { label: 'Descrição', valor: item.descricao || '', chave: 'descricao' },
+        { label: 'Arquivo', valor: item.arquivo || '', chave: 'arquivo' },
+        { label: 'Senha', valor: item.senha || '', chave: 'senha' },
+        { label: 'Aviso', valor: item.aviso || '', chave: 'aviso' },
+        { label: 'Categoria', valor: item.categoria || '', chave: 'categoria' }
+      ];
+      camposItem.forEach(campo => {
+        const label = document.createElement('label');
+        label.textContent = campo.label;
+        const input = document.createElement('input');
+        input.value = campo.valor;
+        input.addEventListener('input', () => {
+          itensMenu[index][campo.chave] = input.value;
+        });
+        label.appendChild(input);
+        div.appendChild(label);
+      });
+      const btnRemover = document.createElement('button');
+      btnRemover.textContent = 'Remover';
+      btnRemover.style.background = '#8b1a1a';
+      btnRemover.addEventListener('click', () => {
+        itensMenu.splice(index, 1);
+        renderizarEditor();
+        renderizarMenu();
+      });
+      div.appendChild(btnRemover);
+      editorConteudo.appendChild(div);
+    });
+
+    const btnAdd = document.createElement('button');
+    btnAdd.textContent = '+ Adicionar Item';
+    btnAdd.addEventListener('click', () => {
+      itensMenu.push({
+        titulo: 'Novo Manuscrito',
+        descricao: '',
+        arquivo: '',
+        senha: '',
+        aviso: '',
+        categoria: ''
+      });
+      renderizarEditor();
+      renderizarMenu();
+    });
+    editorConteudo.appendChild(btnAdd);
+  }
+
+  document.getElementById('btnSalvarLocal').addEventListener('click', () => {
+    config.itens = itensMenu;
+    localStorage.setItem('core_config', JSON.stringify(config));
+    renderizarMenu();
+    alert('Salvo no navegador!');
+  });
+
+  document.getElementById('btnBaixarJSON').addEventListener('click', () => {
+    config.itens = itensMenu;
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'menu.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('btnFecharEditor').addEventListener('click', () => {
+    editorMestre.classList.remove('ativo');
+    renderizarMenu();
+  });
+
+  // Sons (apenas efeitos de clique)
+  let audioCtx = null;
+  function tocarClique() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 600;
+      gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.1);
+    } catch(e) {}
+  }
+  function tocarPagina() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = 800;
+      gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.2);
+    } catch(e) {}
+  }
+
+  function criarPoeira() {
+    const container = document.getElementById('poeira');
+    for (let i = 0; i < 30; i++) {
+      const span = document.createElement('span');
+      span.style.left = Math.random() * 100 + '%';
+      span.style.top = Math.random() * 100 + '%';
+      span.style.animationDelay = Math.random() * 10 + 's';
+      container.appendChild(span);
+    }
+  }
+
+  function inicializar() {
+    gerarRunasDecorativas();
+    gerarTecladoRunico();
+    criarPoeira();
+    carregarConfig();
+    const intro = document.getElementById('introContainer');
+    if (intro) {
+      intro.addEventListener('animationend', () => intro.remove());
+    }
+  }
+
+  inicializar();
+</script>
+</body>
+</html>

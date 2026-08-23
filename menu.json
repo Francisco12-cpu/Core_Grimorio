@@ -1,0 +1,20 @@
+{
+  "menu": {
+    "titulo": "C.O.R.E.",
+    "corPrimaria": "#d4af37",
+    "corSecundaria": "#8b1a1a",
+    "tempoGlitch": 5000,
+    "senhaMestre": "NAUTILUS",
+    "brilho": 1.0
+  },
+  "itens": [
+    {
+      "titulo": "Exemplo de Manuscrito",
+      "descricao": "Uma descrição enigmática.",
+      "arquivo": "exemplo.html",
+      "senha": "",
+      "aviso": "",
+      "categoria": ""
+    }
+  ]
+}
