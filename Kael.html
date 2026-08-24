@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>HERMES — A Experiência</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=IM+Fell+English:ital@0;1&family=Oswald:wght@400;500;600;700&family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --gold: #d4af37;
+    --gold-dark: #8B6914;
+    --red: #ff1e1e;
+    --yellow: #ffe135;
+    --bg: #0d0a07;
+    --card-bg: #e8d5b5;
+    --card-border: #b89e6e;
+    --card-text: #3a2a1a;
+    --brilho: 1.0;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+
+  html, body {
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+    font-family: 'Oswald', sans-serif;
+    touch-action: manipulation;
+  }
+
+  #stage {
+    position: relative;
+    width: 100vw;
+    height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+  }
+
+  #frame {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #050505;
+    overflow: hidden;
+    cursor: default;
+  }
+
+  /* ===== FUNDO ===== */
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, #1a0e0e 0%, #000 70%);
+    overflow: hidden;
+    transition: background 0.3s;
+    z-index: 0;
+  }
+  .bg-grid::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 60%;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,60,90,0.35) 0 1px, transparent 1px 60px),
+      repeating-linear-gradient(90deg, rgba(255,60,90,0.35) 0 1px, transparent 1px 60px);
+    transform: perspective(400px) rotateX(60deg);
+    transform-origin: bottom;
+    opacity: 0.7;
+  }
+  .bg-grid.blue {
+    background: radial-gradient(ellipse at 50% 0%, #0a0a2a 0%, #000 70%);
+  }
+  .bg-grid.blue::before {
+    background-image:
+      repeating-linear-gradient(0deg, rgba(80,120,255,0.5) 0 1px, transparent 1px 60px),
+      repeating-linear-gradient(90deg, rgba(80,120,255,0.5) 0 1px, transparent 1px 60px);
+  }
+  .bg-grid.red-solid { background: linear-gradient(180deg, #e00000 0%, #b80000 55%, #3a0000 100%); }
+  .bg-grid.red-solid::before { display:none; }
+  .bg-grid.black-flat { background: #000; }
+  .bg-grid.black-flat::before { display:none; }
+
+  .noise {
+    position: absolute; inset: 0; pointer-events: none;
+    opacity: 0.18; mix-blend-mode: overlay; z-index: 5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: noise-shift 0.4s steps(3) infinite;
+  }
+  @keyframes noise-shift {
+    0% { transform: translate(0,0); } 33% { transform: translate(-2%,1%); }
+    66% { transform: translate(2%,-1%); } 100% { transform: translate(0,0); }
+  }
+  .scanlines {
+    position: absolute; inset: 0; pointer-events: none; z-index: 5;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0 1px, transparent 1px 3px);
+    opacity: 0.5;
+  }
+
+  /* ===== CAMADA DE CONTEÚDO ===== */
+  .tela {
+    position: absolute; inset: 0;
+    display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 5vh 6vw; gap: 2vh;
+    z-index: 10;
+    overflow-y: auto;
+  }
+  .tela.ativa { display: flex; }
+
+  /* Textos */
+  .eyebrow {
+    font-size: clamp(0.9rem, 2vw, 1.3rem); letter-spacing: 3px; color: #fff;
+    text-shadow: 1.5px 0 0 #4dff9a, -1.5px 0 0 #b388ff, 0 0 8px rgba(255,255,255,0.4);
+    font-weight: 500;
+  }
+  .titulo {
+    font-size: clamp(1.6rem, 5vw, 3.6rem); font-weight: 700; font-style: italic;
+    color: var(--red); text-decoration: underline; text-underline-offset: 8px;
+    text-shadow: 0 0 18px rgba(255,30,30,0.7); line-height: 1.1;
+  }
+  .titulo.sem-italico { font-style: normal; }
+  .corpo {
+    font-size: clamp(1rem, 2.6vw, 1.8rem); font-weight: 600; color: #fff;
+    text-shadow: 1.5px 0 0 #4dff9a, -1.5px 0 0 #b388ff; line-height: 1.4; max-width: 42ch;
+  }
+  .corpo-fino {
+    font-size: clamp(0.9rem, 2.2vw, 1.3rem); font-weight: 400; color: #eee;
+    text-shadow: 1px 0 0 #4dff9a, -1px 0 0 #b388ff; max-width: 46ch; line-height: 1.5;
+  }
+  .fala-hermes {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1rem, 2.5vw, 1.8rem);
+    font-weight: 700;
+    color: var(--yellow);
+    text-shadow: 0 0 15px rgba(255,225,53,0.8), 0 0 30px rgba(255,225,53,0.4);
+    max-width: 44ch;
+    line-height: 1.4;
+    letter-spacing: 1px;
+  }
+
+  /* Botões */
+  .btn {
+    font-family: 'Share Tech Mono', monospace;
+    background: transparent; border: 2px solid #fff; color: #fff;
+    padding: 0.7rem 1.5rem; font-size: clamp(0.8rem, 1.8vw, 1rem);
+    letter-spacing: 2px; cursor: pointer; border-radius: 2px;
+    transition: all 0.15s;
+    touch-action: manipulation;
+  }
+  .btn:active { background: #fff; color: #000; }
+  .btn.vermelho { border-color: var(--red); color: var(--red); text-shadow: 0 0 8px rgba(255,30,30,0.6); }
+  .btn.vermelho:active { background: var(--red); color: #000; }
+  .btn.dourado { border-color: var(--yellow); color: var(--yellow); text-shadow: 0 0 10px rgba(255,225,53,0.7); background: rgba(255,225,53,0.05); }
+  .btn.dourado:active { background: var(--yellow); color: #000; }
+  .btn-row { display: flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center; }
+
+  /* Runas e KAEL */
+  .runa-decorativa, .kael-decorativo {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    opacity: 0.25;
+    text-shadow: 0 0 10px var(--gold);
+    animation: flutuarRuna 12s infinite alternate ease-in-out;
+    user-select: none;
+  }
+  .kael-decorativo {
+    color: var(--yellow);
+    text-shadow: 0 0 15px var(--yellow);
+    font-size: 1.5rem;
+  }
+  @keyframes flutuarRuna {
+    from { transform: translateY(0) rotate(0deg) scale(1); opacity: 0.15; }
+    to   { transform: translateY(-20px) rotate(10deg) scale(1.2); opacity: 0.4; }
+  }
+
+  /* Intro KAEL */
+  .intro-kael-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 30;
+    display: flex;
+    gap: 10px;
+    pointer-events: none;
+    animation: introSumir 3s forwards;
+  }
+  .intro-kael {
+    font-family: 'Cinzel', serif;
+    font-size: 3rem;
+    color: var(--yellow);
+    text-shadow: 0 0 40px rgba(255,225,53,1), 0 0 80px rgba(255,225,53,0.5);
+    opacity: 0;
+    animation: introRuna 2.2s forwards;
+  }
+  .intro-kael:nth-child(1) { animation-delay: 0.0s; }
+  .intro-kael:nth-child(2) { animation-delay: 0.2s; }
+  .intro-kael:nth-child(3) { animation-delay: 0.4s; }
+  .intro-kael:nth-child(4) { animation-delay: 0.6s; }
+  @keyframes introRuna {
+    0% { opacity: 0; transform: scale(0.2) rotate(-90deg); }
+    15% { opacity: 1; transform: scale(1.1) rotate(5deg); }
+    30% { opacity: 1; transform: scale(1) rotate(0); }
+    80% { opacity: 1; transform: scale(1) rotate(0); text-shadow: 0 0 60px rgba(255,225,53,1); }
+    100% { opacity: 0; transform: scale(1.3); text-shadow: 0 0 0 transparent; }
+  }
+  @keyframes introSumir {
+    0%, 90% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.3); }
+  }
+
+  /* Caduceu SVG */
+  .caduceu-container {
+    position: relative;
+    width: min(50vw, 200px);
+    margin: 0 auto;
+    filter: drop-shadow(0 0 20px rgba(212,175,55,0.7));
+    animation: pulsarCaduceu 3s ease-in-out infinite alternate;
+  }
+  @keyframes pulsarCaduceu {
+    from { filter: drop-shadow(0 0 15px rgba(212,175,55,0.5)); }
+    to { filter: drop-shadow(0 0 30px rgba(212,175,55,1)); }
+  }
+  .serpente {
+    animation: moverSerpente 4s ease-in-out infinite alternate;
+  }
+  @keyframes moverSerpente {
+    from { transform: translateY(0); }
+    to { transform: translateY(-5px); }
+  }
+
+  /* Terra */
+  .terra-container {
+    width: min(50vw, 200px);
+    height: min(50vw, 200px);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 40% 35%, #4d9de0, #1b3b6f 60%, #0a1a2a 90%),
+      radial-gradient(circle at 60% 55%, #4d9de0 0%, transparent 40%);
+    box-shadow: 0 0 40px rgba(70,130,200,0.6), inset -20px -20px 40px rgba(0,0,0,0.5);
+    animation: girarTerra 12s linear infinite, pulsarTerra 4s ease-in-out infinite alternate;
+    position: relative;
+    overflow: hidden;
+  }
+  .terra-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), transparent 40%),
+      radial-gradient(circle at 45% 45%, #228B22 0%, transparent 15%),
+      radial-gradient(circle at 60% 70%, #32CD32 0%, transparent 20%),
+      radial-gradient(circle at 75% 40%, #006400 0%, transparent 25%),
+      radial-gradient(circle at 50% 80%, #2E8B57 0%, transparent 18%),
+      radial-gradient(circle at 35% 65%, #3CB371 0%, transparent 12%),
+      radial-gradient(circle at 80% 60%, #4CAF50 0%, transparent 10%),
+      radial-gradient(circle at 20% 80%, #2E7D32 0%, transparent 15%),
+      radial-gradient(circle at 70% 30%, #1B5E20 0%, transparent 20%),
+      radial-gradient(circle at 25% 50%, #388E3C 0%, transparent 15%);
+    border-radius: 50%;
+    mix-blend-mode: overlay;
+    animation: girarTerra 8s linear infinite reverse;
+  }
+  .terra-container::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(255,255,255,0.1) 3px 6px);
+    mix-blend-mode: overlay;
+    border-radius: 50%;
+  }
+  @keyframes girarTerra {
+    from { transform: rotate(0); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes pulsarTerra {
+    from { box-shadow: 0 0 40px rgba(70,130,200,0.5), inset -20px -20px 40px rgba(0,0,0,0.5); }
+    to { box-shadow: 0 0 60px rgba(70,130,200,0.8), inset -20px -20px 40px rgba(0,0,0,0.5); }
+  }
+
+  /* Lua */
+  .lua-container {
+    width: min(40vw, 150px);
+    height: min(40vw, 150px);
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #f0e68c, #daa520 60%, #8B6914 90%);
+    box-shadow: 0 0 30px rgba(240,230,140,0.8);
+    transition: background 0.5s, box-shadow 0.5s;
+    animation: pulsarLua 4s ease-in-out infinite alternate;
+  }
+  .lua-container.vermelha {
+    background: radial-gradient(circle at 40% 35%, #ff6060, #cc0000 60%, #660000 90%);
+    box-shadow: 0 0 50px rgba(255,0,0,0.9);
+    animation: tremerLua 0.1s infinite;
+  }
+  @keyframes pulsarLua {
+    from { box-shadow: 0 0 20px rgba(240,230,140,0.6); }
+    to { box-shadow: 0 0 40px rgba(240,230,140,1); }
+  }
+  @keyframes tremerLua {
+    0% { transform: translate(0); }
+    25% { transform: translate(-3px, 2px); }
+    50% { transform: translate(3px, -1px); }
+    75% { transform: translate(-2px, -2px); }
+    100% { transform: translate(2px, 1px); }
+  }
+
+  /* Flor corrigida */
+  .flor-container {
+    position: relative;
+    width: min(40vw, 150px);
+    height: min(40vw, 150px);
+    margin: 0 auto;
+    animation: pulsarFlor 3s ease-in-out infinite alternate;
+  }
+  .petala {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 38%;
+    height: 38%;
+    background: var(--yellow);
+    border-radius: 50% 50% 0 0;
+    transform-origin: bottom center;
+    transform: translate(-50%, -100%) rotate(var(--angulo)) translateY(-40%);
+    box-shadow: 0 0 10px rgba(255,225,53,0.5);
+  }
+  .petala:nth-child(1) { --angulo: 0deg; }
+  .petala:nth-child(2) { --angulo: 60deg; }
+  .petala:nth-child(3) { --angulo: 120deg; }
+  .petala:nth-child(4) { --angulo: 180deg; }
+  .petala:nth-child(5) { --angulo: 240deg; }
+  .petala:nth-child(6) { --angulo: 300deg; }
+  .centro-flor {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40%;
+    height: 40%;
+    background: #b8860b;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 20px #b8860b, 0 0 40px rgba(184,134,11,0.5);
+    z-index: 2;
+  }
+  @keyframes pulsarFlor {
+    from { transform: scale(0.9); filter: drop-shadow(0 0 10px rgba(255,225,53,0.5)); }
+    to { transform: scale(1.1); filter: drop-shadow(0 0 30px rgba(255,225,53,1)); }
+  }
+
+  /* Alma fantasmagórica */
+  .alma {
+    position: absolute;
+    width: 30px;
+    height: 40px;
+    background: radial-gradient(circle at 50% 30%, rgba(255,255,255,0.9), rgba(200,200,255,0.4) 70%, transparent);
+    border-radius: 50% 50% 0 0;
+    box-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(212,175,55,0.6);
+    opacity: 0.7;
+    animation: subirAlma linear infinite, ondularAlma 2s ease-in-out infinite alternate;
+  }
+  @keyframes subirAlma {
+    from { transform: translateY(0) scale(1); opacity: 0.7; }
+    to { transform: translateY(-100vh) scale(0.3); opacity: 0; }
+  }
+  @keyframes ondularAlma {
+    from { margin-left: -5px; }
+    to { margin-left: 5px; }
+  }
+
+  /* Partícula dourada */
+  .poeira-dourada {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--gold);
+    border-radius: 50%;
+    opacity: 0.5;
+    box-shadow: 0 0 8px var(--gold);
+    animation: flutuar 8s infinite alternate ease-in-out;
+  }
+  @keyframes flutuar {
+    from { transform: translateY(0) translateX(0); opacity: 0.2; }
+    to   { transform: translateY(-40vh) translateX(15px); opacity: 0.8; }
+  }
+
+  /* Texto glitchado */
+  .glitch-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    color: #fff;
+    text-shadow: 2px 0 0 #ff0033, -2px 0 0 #00eaff;
+    animation: glitch-texto 0.8s steps(2) infinite;
+  }
+  @keyframes glitch-texto {
+    0% { transform: translateX(0); opacity: 1; }
+    25% { transform: translateX(-5px); opacity: 0.8; }
+    50% { transform: translateX(3px); opacity: 1; }
+    75% { transform: translateX(-2px); opacity: 0.9; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+
+  /* Overlay de glitch RGB */
+  #glitch-rgb {
+    position: fixed; inset: 0; z-index: 95;
+    display: none;
+    mix-blend-mode: screen;
+    pointer-events: none;
+  }
+  #glitch-rgb.ativo { display: block; animation: glitch-rgb-flash 0.15s steps(2) infinite; }
+  #glitch-rgb::before, #glitch-rgb::after {
+    content: ''; position: absolute; inset: 0;
+  }
+  #glitch-rgb::before {
+    background: repeating-linear-gradient(0deg, rgba(255,0,60,0.5) 0 2px, transparent 2px 6px);
+    animation: glitch-shift-a 0.12s steps(2) infinite;
+  }
+  #glitch-rgb::after {
+    background: repeating-linear-gradient(0deg, rgba(0,200,255,0.4) 0 2px, transparent 2px 8px);
+    animation: glitch-shift-b 0.1s steps(2) infinite;
+  }
+  @keyframes glitch-rgb-flash { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+  @keyframes glitch-shift-a { 0% { transform: translateX(0); } 50% { transform: translateX(8px); } 100% { transform: translateX(-6px); } }
+  @keyframes glitch-shift-b { 0% { transform: translateX(0); } 50% { transform: translateX(-10px); } 100% { transform: translateX(4px); } }
+
+  /* Tela corrompida */
+  #tela-corrompida {
+    position: fixed; inset: 0; z-index: 92;
+    display: none; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center, #d40000 0%, #7a0000 70%, #2a0000 100%);
+    pointer-events: none;
+  }
+  #tela-corrompida.mostrar { display: flex; animation: tremor-corrompida 0.08s infinite; }
+  @keyframes tremor-corrompida {
+    0%, 100% { filter: brightness(1) contrast(1); }
+    50% { filter: brightness(1.25) contrast(1.3); }
+  }
+
+  /* Input de confissão */
+  .input-confissao {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+    background: transparent;
+    border: 2px solid var(--yellow);
+    border-radius: 4px;
+    color: var(--yellow);
+    padding: 0.6rem;
+    width: min(80vw, 500px);
+    text-align: center;
+    outline: none;
+    letter-spacing: 2px;
+  }
+  .input-confissao:focus {
+    box-shadow: 0 0 20px rgba(255,225,53,0.5);
+  }
+
+  /* Máscara (rosto) melhorada */
+  .mascara-wrap {
+    position: relative;
+    width: clamp(100px, 15vw, 180px);
+    filter: drop-shadow(0 0 15px rgba(255,255,255,0.3));
+    animation: tremor-bug 0.15s infinite;
+  }
+  @keyframes tremor-bug {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.3) contrast(1.2); }
+  }
+  .mascara-wrap svg { width: 100%; display:block; }
+
+  /* Palavras aleatórias em posição aleatória */
+  .palavra-canto {
+    position: fixed;
+    z-index: 15;
+    pointer-events: none;
+    font-family: 'Cinzel', serif;
+    color: var(--yellow);
+    text-shadow: 0 0 10px rgba(255,225,53,0.7);
+    opacity: 0;
+    animation: aparecerCanto 5s ease-in-out forwards;
+    white-space: nowrap;
+    font-size: 0.9rem;
+  }
+  @keyframes aparecerCanto {
+    0% { opacity: 0; transform: translateY(10px); }
+    10% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-10px); }
+  }
+
+  /* Risadas spam */
+  .risada-spam {
+    position: fixed;
+    z-index: 20;
+    pointer-events: none;
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--yellow);
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(255,225,53,0.8);
+    animation: aparecerRisada 2s forwards;
+    font-size: 1.2rem;
+  }
+  @keyframes aparecerRisada {
+    from { opacity: 0; transform: translateY(20px) rotate(-10deg); }
+    to { opacity: 1; transform: translateY(0) rotate(0); }
+  }
+
+  /* Flores spam */
+  .flor-spam {
+    position: fixed;
+    z-index: 18;
+    pointer-events: none;
+    animation: pulsarFlorSpam 1.5s ease-in-out infinite alternate;
+  }
+  @keyframes pulsarFlorSpam {
+    from { transform: scale(0.8); opacity: 0.7; }
+    to { transform: scale(1.2); opacity: 1; }
+  }
+
+  /* Responsividade */
+  @media (max-width: 600px) {
+    .btn-row { gap: 0.6rem; }
+    .btn { padding: 0.6rem 1.2rem; font-size: 0.8rem; }
+    .fala-hermes { font-size: clamp(0.9rem, 2.2vw, 1.3rem); }
+    .caduceu-container { width: min(40vw, 150px); }
+    .terra-container { width: min(40vw, 150px); height: min(40vw, 150px); }
+    .lua-container { width: min(35vw, 120px); height: min(35vw, 120px); }
+    .flor-container { width: min(35vw, 120px); height: min(35vw, 120px); }
+    .alma { width: 20px; height: 30px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <div id="frame">
+    <div class="bg-grid black-flat" id="fundo"></div>
+    <div class="noise"></div>
+    <div class="scanlines"></div>
+
+    <!-- TELA 0: INTRO KAEL -->
+    <div class="tela ativa" id="tela-intro" data-fundo="black-flat">
+      <div class="intro-kael-container" id="intro-kael">
+        <span class="intro-kael">K</span>
+        <span class="intro-kael">A</span>
+        <span class="intro-kael">E</span>
+        <span class="intro-kael">L</span>
+      </div>
+      <div class="fala-hermes" id="texto-intro-1" style="display:none;">EU SOU HERMES</div>
+      <div class="fala-hermes" id="texto-intro-2" style="display:none;">EU SEMPRE VOU ESTAR AQUI</div>
+      <button class="btn dourado" id="btn-iniciar-intro" style="display:none;">COMEÇAR</button>
+    </div>
+
+    <!-- TELA 1: APARIÇÃO DE HERMES -->
+    <div class="tela" id="tela-hermes" data-fundo="black-flat">
+      <div class="caduceu-container" id="caduceu">
+        <svg viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="ouroGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#ffe9a0"/>
+              <stop offset="50%" stop-color="#d4af37"/>
+              <stop offset="100%" stop-color="#8B6914"/>
+            </linearGradient>
+            <filter id="brilho">
+              <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#d4af37" flood-opacity="0.8"/>
+            </filter>
+          </defs>
+          <line x1="100" y1="40" x2="100" y2="220" stroke="url(#ouroGrad)" stroke-width="6" stroke-linecap="round" filter="url(#brilho)"/>
+          <path d="M100 40 Q70 10 50 20 Q75 40 100 50" fill="url(#ouroGrad)" filter="url(#brilho)"/>
+          <path d="M100 40 Q130 10 150 20 Q125 40 100 50" fill="url(#ouroGrad)" filter="url(#brilho)"/>
+          <path class="serpente" d="M80 220 C80 180, 120 180, 120 150 C120 120, 80 120, 80 90 C80 60, 120 60, 120 40" fill="none" stroke="#8B6914" stroke-width="5" stroke-linecap="round" filter="url(#brilho)"/>
+          <path class="serpente" d="M120 220 C120 180, 80 180, 80 150 C80 120, 120 120, 120 90 C120 60, 80 60, 80 40" fill="none" stroke="#d4af37" stroke-width="5" stroke-linecap="round" filter="url(#brilho)"/>
+          <circle cx="80" cy="40" r="6" fill="#ffd700" filter="url(#brilho)"/>
+          <circle cx="120" cy="40" r="6" fill="#ffd700" filter="url(#brilho)"/>
+          <circle cx="78" cy="39" r="1.5" fill="#000"/>
+          <circle cx="122" cy="39" r="1.5" fill="#000"/>
+        </svg>
+      </div>
+      <div class="fala-hermes" id="fala-hermes-1">EU VEJO VOCÊ</div>
+      <div class="fala-hermes" id="fala-hermes-2" style="display:none;">EU SEI QUEM VOCÊ É</div>
+      <div class="fala-hermes" id="fala-hermes-3" style="display:none;">EU VEJO VOCÊ, GAEL E O SAULO</div>
+      <div class="fala-hermes" id="fala-hermes-4" style="display:none;">VOCÊ É ENGRANÇADO PRA MIM, RIOS E VOCÊ</div>
+      <div class="fala-hermes" id="fala-hermes-5" style="display:none;">NÃO QUER USAR MAIS DO QUE SE EU FALAR</div>
+      <div class="btn-row" id="botoes-hermes" style="display:none;">
+        <button class="btn dourado" id="btn-falar">FALAR</button>
+        <button class="btn vermelho" id="btn-nao-falar">NÃO FALAR</button>
+      </div>
+    </div>
+
+    <!-- TELA 2: MUNDO GIRANDO -->
+    <div class="tela" id="tela-mundo" data-fundo="blue">
+      <div class="terra-container" id="terra"></div>
+      <div class="fala-hermes" id="fala-mundo-1">VOCÊ É PEQUENO</div>
+      <div class="fala-hermes" id="fala-mundo-2" style="display:none;">VOCÊ É MENOR QUE O MUNDO</div>
+      <div class="fala-hermes" id="fala-mundo-3" style="display:none;">O MUNDO É GRANDE PARA VOCÊ, O MUNDO É PEQUENO PARA MIM</div>
+      <div class="fala-hermes" id="fala-mundo-4" style="display:none;">EU LHE MATEI EM TODAS AS REALIDADES</div>
+      <div class="fala-hermes" id="fala-mundo-5" style="display:none;">SIMPLESMENTE PORQUE EU PODIA</div>
+      <div class="fala-hermes" id="fala-mundo-6" style="display:none;">E ISSO É MUITO ENGRANÇADO, EU RIO, RIO DA SUA DESGRAÇA</div>
+      <div class="btn-row" id="botoes-mundo" style="display:none;">
+        <button class="btn dourado" id="btn-sou-pequeno">SOU PEQUENO</button>
+        <button class="btn vermelho" id="btn-sou-grande">SOU GRANDE</button>
+      </div>
+      <div class="fala-hermes" id="resposta-mundo" style="display:none;"></div>
+      <button class="btn dourado" id="btn-continuar-mundo" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- TELA 3: FLOR -->
+    <div class="tela" id="tela-flor" data-fundo="black-flat">
+      <div class="flor-container" id="flor">
+        <div class="petala"></div>
+        <div class="petala"></div>
+        <div class="petala"></div>
+        <div class="petala"></div>
+        <div class="petala"></div>
+        <div class="petala"></div>
+        <div class="centro-flor"></div>
+      </div>
+      <div class="fala-hermes" id="fala-flor-1">VOCÊ AINDA COMEU A FLOR</div>
+      <div class="fala-hermes" id="fala-flor-2" style="display:none;">E VOCÊ COMEU A FLOR</div>
+      <div class="fala-hermes" id="fala-flor-3" style="display:none;">SABE SUA AMIGA?</div>
+      <div class="fala-hermes" id="fala-flor-4" style="display:none;">ELA ESTÁ COMIGO</div>
+      <div class="fala-hermes" id="fala-flor-5" style="display:none;">EU ESTOU COM SUA AMIGA</div>
+      <div class="fala-hermes" id="fala-flor-6" style="display:none;">VOCÊ COMEU A FLOR</div>
+      <div class="fala-hermes" id="fala-flor-7" style="display:none;">SABE COMO EU SOU COM ESSA FLOR?</div>
+      <div class="fala-hermes" id="fala-flor-8" style="display:none;">INCONSEQUENTE</div>
+      <div class="btn-row" id="botoes-flor" style="display:none;">
+        <button class="btn dourado" id="btn-comer-flor">COMER A FLOR</button>
+        <button class="btn vermelho" id="btn-perguntar-flor">PERGUNTAR POR QUE</button>
+      </div>
+      <div class="fala-hermes" id="resposta-flor" style="display:none;"></div>
+      <button class="btn dourado" id="btn-continuar-flor" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- TELA 4: PERGUNTAS -->
+    <div class="tela" id="tela-perguntas" data-fundo="red-solid">
+      <div class="fala-hermes" id="pergunta-texto">VOCÊ ACHA QUE É MELHOR QUE EU?</div>
+      <div class="btn-row" id="botoes-pergunta">
+        <button class="btn dourado" data-resposta="sim">SIM</button>
+        <button class="btn vermelho" data-resposta="nao">NÃO</button>
+      </div>
+      <div class="fala-hermes" id="resposta-hermes-pergunta" style="display:none;"></div>
+      <button class="btn dourado" id="btn-proxima-pergunta" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- TELA 5: AMIGA FALECIDA -->
+    <div class="tela" id="tela-amiga" data-fundo="black-flat">
+      <div class="fala-hermes" id="fala-amiga-1">VAI FALAR COM A TUA AMIGA.</div>
+      <div class="fala-hermes" id="fala-amiga-2" style="display:none;">A SUA AMIGA ESTÁ COMIGO.</div>
+      <div class="fala-hermes" id="fala-amiga-3" style="display:none;">EU ESTOU COM A ALMA DELA.</div>
+      <div class="fala-hermes" id="fala-amiga-4" style="display:none;">DESEJA OUVI-LA?</div>
+      <div class="btn-row" id="botoes-amiga" style="display:none;">
+        <button class="btn dourado" id="btn-ouvir-amiga">SIM, QUERO OUVI-LA</button>
+        <button class="btn vermelho" id="btn-nao-ouvir">NÃO</button>
+      </div>
+      <div class="mascara-wrap" id="mascara-amiga" style="display:none;">
+        <svg viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="pele" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#f0d5c0"/>
+              <stop offset="100%" stop-color="#d4a98a"/>
+            </linearGradient>
+            <linearGradient id="cabelo" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#4a2c1a"/>
+              <stop offset="100%" stop-color="#2a1a0e"/>
+            </linearGradient>
+            <filter id="sombra">
+              <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000" flood-opacity="0.5"/>
+            </filter>
+          </defs>
+          <ellipse cx="100" cy="100" rx="88" ry="75" fill="url(#cabelo)" filter="url(#sombra)"/>
+          <ellipse cx="100" cy="125" rx="72" ry="85" fill="url(#pele)" stroke="#000" stroke-width="1"/>
+          <ellipse cx="100" cy="180" rx="40" ry="20" fill="rgba(0,0,0,0.1)" opacity="0.3"/>
+          <path d="M48 112 Q65 100 82 108" stroke="#3a2a1a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <path d="M118 108 Q135 100 152 112" stroke="#3a2a1a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <ellipse cx="70" cy="127" rx="14" ry="10" fill="#fff" filter="url(#sombra)"/>
+          <ellipse cx="130" cy="127" rx="14" ry="10" fill="#fff" filter="url(#sombra)"/>
+          <circle cx="70" cy="127" r="6" fill="#4a6d8c"/>
+          <circle cx="130" cy="127" r="6" fill="#4a6d8c"/>
+          <circle cx="70" cy="127" r="3" fill="#000"/>
+          <circle cx="130" cy="127" r="3" fill="#000"/>
+          <circle cx="72" cy="125" r="1.5" fill="#fff" opacity="0.8"/>
+          <circle cx="132" cy="125" r="1.5" fill="#fff" opacity="0.8"/>
+          <path d="M56 120 Q48 117 45 110" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M84 118 Q90 115 92 110" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <path d="M108 118 Q110 115 112 110" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <path d="M144 120 Q152 117 155 110" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M97 140 Q102 155 92 168" stroke="#a89890" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <ellipse cx="95" cy="168" rx="8" ry="3" fill="rgba(0,0,0,0.1)" opacity="0.5"/>
+          <path d="M65 195 Q100 220 135 195" stroke="#b8720a" stroke-width="6" fill="none" stroke-linecap="round"/>
+          <path d="M75 198 Q100 215 125 198" stroke="#e88b6a" stroke-width="2" fill="none" opacity="0.5"/>
+          <ellipse cx="55" cy="160" rx="12" ry="8" fill="rgba(232,139,106,0.3)"/>
+          <ellipse cx="145" cy="160" rx="12" ry="8" fill="rgba(232,139,106,0.3)"/>
+        </svg>
+      </div>
+      <div class="fala-hermes" id="fala-amiga-resposta" style="display:none;"></div>
+      <div id="mensagens-amiga" style="display:none; max-width:80vw;"></div>
+      <button class="btn dourado" id="btn-continuar-amiga" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- TELA 6: ALMAS SUBINDO -->
+    <div class="tela" id="tela-almas" data-fundo="black-flat">
+      <div class="fala-hermes">ELAS ESTÃO COMIGO AGORA.</div>
+      <div class="fala-hermes">TODAS ELAS.</div>
+      <div class="fala-hermes">VOCÊ PODE SE JUNTAR A ELAS... SE QUISER.</div>
+      <div class="btn-row" id="botoes-almas">
+        <button class="btn dourado" id="btn-juntar">JUNTAR-SE A ELAS</button>
+        <button class="btn vermelho" id="btn-resistir">RESISTIR</button>
+        <button class="btn" id="btn-perguntar-amiga-de-novo">PERGUNTAR SOBRE A AMIGA</button>
+      </div>
+      <div class="fala-hermes" id="resposta-almas" style="display:none;"></div>
+      <button class="btn dourado" id="btn-continuar-almas" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- TELA 7: LUA VERMELHA -->
+    <div class="tela" id="tela-lua" data-fundo="black-flat">
+      <div class="eyebrow" id="texto-lua-amarela">LUA AMARELA</div>
+      <div class="lua-container" id="lua"></div>
+      <div class="glitch-text" id="texto-lua" style="display:none;">EU ESTOU... SERÁ?</div>
+      <div class="fala-hermes" id="grito-hermes-1" style="display:none;">EU SOU A VERDADE!</div>
+      <div class="fala-hermes" id="grito-hermes-2" style="display:none;">EU SOU O FIM!</div>
+      <div class="fala-hermes" id="texto-final-escolha" style="display:none;"></div>
+      <div class="btn-row" id="botoes-lua" style="display:none;">
+        <button class="btn dourado" id="btn-acalmar-lua">ACALMAR</button>
+        <button class="btn vermelho" id="btn-aceitar-lua">ACEITAR</button>
+      </div>
+    </div>
+
+    <!-- TELA 8: FIM -->
+    <div class="tela" id="tela-fim" data-fundo="black-flat">
+      <div class="fala-hermes" id="texto-fim-1"></div>
+      <div class="fala-hermes" id="texto-fim-2"></div>
+      <button class="btn dourado" id="btn-reiniciar" style="display:none;">REINICIAR</button>
+    </div>
+
+    <div id="glitch-rgb"></div>
+    <div id="tela-corrompida"></div>
+    <div id="controle-oculto" onclick="proximoPasso()"></div>
+  </div>
+</div>
+
+<script>
+  // ========== ESTADO GLOBAL ==========
+  const state = {
+    comeuFlor: false,
+    respostas: {},
+    audioCtx: null,
+    drone: null,
+    almasAtivas: false
+  };
+
+  // ========== ELEMENTOS ==========
+  const fundo = document.getElementById('fundo');
+  const telas = document.querySelectorAll('.tela');
+  const glitchRGB = document.getElementById('glitch-rgb');
+  const telaCorrompida = document.getElementById('tela-corrompida');
+
+  // ========== FUNÇÕES DE ÁUDIO ==========
+  function initAudio() {
+    if (state.audioCtx) return;
+    state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Drone contínuo
+    state.drone = state.audioCtx.createOscillator();
+    state.drone.type = 'sawtooth';
+    state.drone.frequency.value = 55;
+    const droneGain = state.audioCtx.createGain();
+    droneGain.gain.value = 0.02;
+    state.drone.connect(droneGain);
+    droneGain.connect(state.audioCtx.destination);
+    state.drone.start();
+    state.droneGain = droneGain;
+  }
+
+  function tocarSom(tipo, freq = 440, duracao = 0.3, volume = 0.1) {
+    if (!state.audioCtx) return;
+    const osc = state.audioCtx.createOscillator();
+    const gain = state.audioCtx.createGain();
+    osc.type = tipo;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(volume, state.audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, state.audioCtx.currentTime + duracao);
+    osc.connect(gain);
+    gain.connect(state.audioCtx.destination);
+    osc.start();
+    osc.stop(state.audioCtx.currentTime + duracao);
+  }
+
+  function tocarGritoTerror() {
+    if (!state.audioCtx) return;
+    const osc = state.audioCtx.createOscillator();
+    const gain = state.audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(1000, state.audioCtx.currentTime);
+    osc.frequency.linearRampToValueAtTime(1800, state.audioCtx.currentTime + 0.2);
+    osc.frequency.linearRampToValueAtTime(800, state.audioCtx.currentTime + 0.4);
+    osc.frequency.linearRampToValueAtTime(2000, state.audioCtx.currentTime + 0.6);
+    gain.gain.setValueAtTime(0.3, state.audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, state.audioCtx.currentTime + 0.8);
+    osc.connect(gain);
+    gain.connect(state.audioCtx.destination);
+    osc.start();
+    osc.stop(state.audioCtx.currentTime + 0.8);
+    const bufferSize = state.audioCtx.sampleRate * 0.8;
+    const buffer = state.audioCtx.createBuffer(1, bufferSize, state.audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    const source = state.audioCtx.createBufferSource();
+    source.buffer = buffer;
+    const noiseGain = state.audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0.2, state.audioCtx.currentTime);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, state.audioCtx.currentTime + 0.8);
+    source.connect(noiseGain);
+    noiseGain.connect(state.audioCtx.destination);
+    source.start();
+    source.stop(state.audioCtx.currentTime + 0.8);
+  }
+
+  function tocarPedidoAjuda() {
+    if (!state.audioCtx) return;
+    const bufferSize = state.audioCtx.sampleRate * 1.5;
+    const buffer = state.audioCtx.createBuffer(1, bufferSize, state.audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    const source = state.audioCtx.createBufferSource();
+    source.buffer = buffer;
+    const filter = state.audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1000;
+    filter.Q.value = 0.8;
+    const gain = state.audioCtx.createGain();
+    gain.gain.setValueAtTime(0.1, state.audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.0, state.audioCtx.currentTime + 1.5);
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(state.audioCtx.destination);
+    source.start();
+    source.stop(state.audioCtx.currentTime + 1.5);
+  }
+
+  function tocarRisadaSinister() {
+    if (!state.audioCtx) return;
+    for (let i = 0; i < 5; i++) {
+      setTimeout(() => tocarSom('square', 200 + i * 50, 0.15, 0.15), i * 200);
+    }
+  }
+
+  function tocarChoro() {
+    if (!state.audioCtx) return;
+    tocarSom('sine', 400, 0.5, 0.1);
+    setTimeout(() => tocarSom('sine', 350, 0.5, 0.1), 300);
+    setTimeout(() => tocarSom('sine', 300, 0.5, 0.1), 600);
+  }
+
+  function tocarMoedas() {
+    if (!state.audioCtx) return;
+    for (let i = 0; i < 3; i++) {
+      setTimeout(() => tocarSom('triangle', 1200 + i * 200, 0.2, 0.08), i * 100);
+    }
+  }
+
+  function tocarSerpente() {
+    if (!state.audioCtx) return;
+    const bufferSize = state.audioCtx.sampleRate * 0.5;
+    const buffer = state.audioCtx.createBuffer(1, bufferSize, state.audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    const source = state.audioCtx.createBufferSource();
+    source.buffer = buffer;
+    const filter = state.audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 3000;
+    filter.Q.value = 5;
+    const gain = state.audioCtx.createGain();
+    gain.gain.setValueAtTime(0.05, state.audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.0, state.audioCtx.currentTime + 0.5);
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(state.audioCtx.destination);
+    source.start();
+    source.stop(state.audioCtx.currentTime + 0.5);
+  }
+
+  function tocarCoruja() {
+    if (!state.audioCtx) return;
+    tocarSom('sine', 500, 0.2, 0.08);
+    setTimeout(() => tocarSom('sine', 450, 0.2, 0.08), 400);
+  }
+
+  function tocarChamas() {
+    if (!state.audioCtx) return;
+    const bufferSize = state.audioCtx.sampleRate * 1;
+    const buffer = state.audioCtx.createBuffer(1, bufferSize, state.audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    const source = state.audioCtx.createBufferSource();
+    source.buffer = buffer;
+    const filter = state.audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 500;
+    const gain = state.audioCtx.createGain();
+    gain.gain.setValueAtTime(0.08, state.audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.0, state.audioCtx.currentTime + 1);
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(state.audioCtx.destination);
+    source.start();
+    source.stop(state.audioCtx.currentTime + 1);
+  }
+
+  function iniciarRuidoCrescente(duracao = 3) {
+    if (!state.audioCtx) return;
+    const bufferSize = state.audioCtx.sampleRate * duracao;
+    const buffer = state.audioCtx.createBuffer(1, bufferSize, state.audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    const source = state.audioCtx.createBufferSource();
+    source.buffer = buffer;
+    const gainNode = state.audioCtx.createGain();
+    gainNode.gain.setValueAtTime(0.01, state.audioCtx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.8, state.audioCtx.currentTime + duracao);
+    source.connect(gainNode);
+    gainNode.connect(state.audioCtx.destination);
+    source.start();
+    source.stop(state.audioCtx.currentTime + duracao);
+  }
+
+  function tocarGrito() {
+    if (!state.audioCtx) return;
+    const osc = state.audioCtx.createOscillator();
+    const gain = state.audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(800, state.audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(200, state.audioCtx.currentTime + 0.5);
+    gain.gain.setValueAtTime(0.4, state.audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, state.audioCtx.currentTime + 0.6);
+    osc.connect(gain);
+    gain.connect(state.audioCtx.destination);
+    osc.start();
+    osc.stop(state.audioCtx.currentTime + 0.7);
+  }
+
+  function tocarRiso() {
+    if (!state.audioCtx) return;
+    for (let i = 0; i < 3; i++) {
+      setTimeout(() => tocarSom('triangle', 300 + i * 100, 0.2), i * 150);
+    }
+  }
+
+  function tocarSino() {
+    if (!state.audioCtx) return;
+    const osc = state.audioCtx.createOscillator();
+    const gain = state.audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 1200;
+    gain.gain.setValueAtTime(0.1, state.audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, state.audioCtx.currentTime + 1);
+    osc.connect(gain);
+    gain.connect(state.audioCtx.destination);
+    osc.start();
+    osc.stop(state.audioCtx.currentTime + 1);
+  }
+
+  // ========== FUNÇÕES VISUAIS ==========
+  function criarRunasDecorativas() {
+    const container = document.createElement('div');
+    container.id = 'runas-decorativas';
+    container.style.position = 'fixed';
+    container.style.inset = '0';
+    container.style.pointerEvents = 'none';
+    container.style.zIndex = '3';
+    const alfabeto = ['ᚠ','ᚢ','ᚦ','ᚨ','ᚱ','ᚲ','ᚷ','ᚹ','ᚺ','ᚾ','ᛁ','ᛃ','ᛇ','ᛈ','ᛉ','ᛊ','ᛏ','ᛒ','ᛖ','ᛗ','ᛚ','ᛜ','ᛞ','ᛟ'];
+    for (let i = 0; i < 30; i++) {
+      const span = document.createElement('span');
+      span.className = 'runa-decorativa';
+      span.textContent = alfabeto[Math.floor(Math.random() * alfabeto.length)];
+      span.style.left = Math.random() * 100 + '%';
+      span.style.top = Math.random() * 100 + '%';
+      span.style.fontSize = (Math.random() * 2 + 1) + 'rem';
+      span.style.animationDelay = Math.random() * 10 + 's';
+      container.appendChild(span);
+    }
+    document.body.appendChild(container);
+  }
+
+  function criarPoeiraDourada() {
+    const container = document.createElement('div');
+    container.id = 'poeira-dourada';
+    container.style.position = 'fixed';
+    container.style.inset = '0';
+    container.style.pointerEvents = 'none';
+    container.style.zIndex = '3';
+    for (let i = 0; i < 40; i++) {
+      const span = document.createElement('span');
+      span.className = 'poeira-dourada';
+      span.style.left = Math.random() * 100 + '%';
+      span.style.top = Math.random() * 100 + '%';
+      span.style.animationDelay = Math.random() * 10 + 's';
+      container.appendChild(span);
+    }
+    document.body.appendChild(container);
+  }
+
+  function criarAlmas() {
+    if (state.almasAtivas) return;
+    state.almasAtivas = true;
+    const container = document.createElement('div');
+    container.id = 'almas-container';
+    container.style.position = 'fixed';
+    container.style.inset = '0';
+    container.style.pointerEvents = 'none';
+    container.style.zIndex = '4';
+    document.body.appendChild(container);
+    setInterval(() => {
+      if (!state.almasAtivas) return;
+      const alma = document.createElement('div');
+      alma.className = 'alma';
+      alma.style.left = Math.random() * 90 + '%';
+      alma.style.bottom = '-50px';
+      alma.style.animationDuration = (Math.random() * 6 + 6) + 's';
+      container.appendChild(alma);
+      setTimeout(() => alma.remove(), 12000);
+    }, 800);
+  }
+
+  function ativarGlitchRGB(ativar) {
+    if (ativar) glitchRGB.classList.add('ativo');
+    else glitchRGB.classList.remove('ativo');
+  }
+
+  function ativarTelaCorrompida(mostrar) {
+    if (mostrar) telaCorrompida.classList.add('mostrar');
+    else telaCorrompida.classList.remove('mostrar');
+  }
+
+  function trocarFundo(tipo) {
+    fundo.className = 'bg-grid ' + tipo;
+  }
+
+  function mostrarTela(id) {
+    telas.forEach(t => t.classList.remove('ativa'));
+    const tela = document.getElementById(id);
+    if (tela) tela.classList.add('ativa');
+    const fundoTela = tela.dataset.fundo;
+    if (fundoTela) trocarFundo(fundoTela);
+  }
+
+  // Palavras aleatórias em posições aleatórias (algumas em runas)
+  function criarPalavraCanto() {
+    const palavras = [
+      'KAEL', 'HERMES', 'MENTIROSO', 'ALMA', 'FLOR', 'LUA', 'TERRA', 'PEQUENO',
+      'REALIDADE', 'VERDADE', 'FIM', 'NANANA', 'SALVAÇÃO', 'MORTE', 'DEUS',
+      'INCONSEQUENTE', 'ENGRANÇADO', 'COMER', 'FLOR', 'AMIGA', 'CONFESSAR',
+      'SUSSURRO', 'GRITO', 'AJUDA', 'MEDO', 'ESCURO', 'MENTIRA'
+    ];
+    const runasMap = {
+      'A': 'ᚨ', 'B': 'ᛒ', 'C': 'ᚲ', 'D': 'ᛞ', 'E': 'ᛖ', 'F': 'ᚠ',
+      'G': 'ᚷ', 'H': 'ᚺ', 'I': 'ᛁ', 'J': 'ᛃ', 'K': 'ᚲ', 'L': 'ᛚ',
+      'M': 'ᛗ', 'N': 'ᚾ', 'O': 'ᛟ', 'P': 'ᛈ', 'Q': 'ᚦ', 'R': 'ᚱ',
+      'S': 'ᛊ', 'T': 'ᛏ', 'U': 'ᚢ', 'V': 'ᚹ', 'W': 'ᚹ', 'X': 'ᛉ',
+      'Y': 'ᛇ', 'Z': 'ᛉ'
+    };
+    function converterParaRunas(texto) {
+      return texto.toUpperCase().split('').map(char => runasMap[char] || char).join('');
+    }
+    setInterval(() => {
+      if (Math.random() < 0.3) return;
+      const palavra = palavras[Math.floor(Math.random() * palavras.length)];
+      const usarRunas = Math.random() < 0.5;
+      const textoFinal = usarRunas ? converterParaRunas(palavra) : palavra;
+      const el = document.createElement('div');
+      el.className = 'palavra-canto';
+      el.textContent = textoFinal;
+      const x = Math.random() * 80 + 10;
+      const y = Math.random() * 80 + 10;
+      el.style.top = y + '%';
+      el.style.left = x + '%';
+      el.style.fontSize = (Math.random() * 1.5 + 0.8) + 'rem';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 5000);
+    }, 3000);
+  }
+
+  // Spam de risadas na tela
+  function spamRisadas(duracao = 5) {
+    const container = document.createElement('div');
+    container.id = 'risadas-spam';
+    container.style.position = 'fixed';
+    container.style.inset = '0';
+    container.style.pointerEvents = 'none';
+    container.style.zIndex = '30';
+    document.body.appendChild(container);
+    const intervalo = setInterval(() => {
+      const el = document.createElement('div');
+      el.className = 'risada-spam';
+      el.textContent = Math.random() < 0.5 ? 'HA' : 'HA HA';
+      el.style.left = Math.random() * 90 + '%';
+      el.style.top = Math.random() * 90 + '%';
+      el.style.fontSize = (Math.random() * 2 + 1) + 'rem';
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 2000);
+    }, 200);
+    setTimeout(() => {
+      clearInterval(intervalo);
+      container.remove();
+    }, duracao * 1000);
+  }
+
+  // Spam de flores na tela
+  function spamFlores(duracao = 5) {
+    const container = document.createElement('div');
+    container.id = 'flores-spam';
+    container.style.position = 'fixed';
+    container.style.inset = '0';
+    container.style.pointerEvents = 'none';
+    container.style.zIndex = '30';
+    document.body.appendChild(container);
+    const intervalo = setInterval(() => {
+      const flor = document.createElement('div');
+      flor.className = 'flor-spam';
+      flor.innerHTML = '🌸';
+      flor.style.left = Math.random() * 90 + '%';
+      flor.style.top = Math.random() * 90 + '%';
+      flor.style.fontSize = (Math.random() * 2 + 1) + 'rem';
+      container.appendChild(flor);
+      setTimeout(() => flor.remove(), 3000);
+    }, 300);
+    setTimeout(() => {
+      clearInterval(intervalo);
+      container.remove();
+    }, duracao * 1000);
+  }
+
+  // ========== SEQUÊNCIA DE INTRO ==========
+  function iniciarIntro() {
+    const btn = document.getElementById('btn-iniciar-intro');
+    const texto1 = document.getElementById('texto-intro-1');
+    const texto2 = document.getElementById('texto-intro-2');
+    setTimeout(() => { texto1.style.display = 'block'; tocarSom('triangle', 400, 0.5); }, 2000);
+    setTimeout(() => { texto2.style.display = 'block'; tocarSom('triangle', 500, 0.5); }, 4000);
+    setTimeout(() => { btn.style.display = 'block'; }, 6000);
+    const iniciarAudio = () => {
+      initAudio();
+      document.removeEventListener('click', iniciarAudio);
+      document.removeEventListener('touchstart', iniciarAudio);
+    };
+    document.addEventListener('click', iniciarAudio);
+    document.addEventListener('touchstart', iniciarAudio);
+  }
+
+  // ========== APARIÇÃO DE HERMES ==========
+  function iniciarHermes() {
+    const falas = [
+      'fala-hermes-1',
+      'fala-hermes-2',
+      'fala-hermes-3',
+      'fala-hermes-4',
+      'fala-hermes-5'
+    ];
+    falas.forEach((f, i) => {
+      setTimeout(() => {
+        document.getElementById(f).style.display = 'block';
+        if (i === 0) tocarSerpente();
+        else tocarSom('triangle', 600 + i * 100, 0.4);
+      }, 1000 + i * 1800);
+    });
+    setTimeout(() => {
+      document.getElementById('botoes-hermes').style.display = 'flex';
+    }, 1000 + falas.length * 1800 + 500);
+
+    document.getElementById('btn-falar').addEventListener('click', () => {
+      document.getElementById('botoes-hermes').style.display = 'none';
+      spamFlores(3);
+      const msg = document.createElement('div');
+      msg.style.position = 'fixed';
+      msg.style.top = '50%';
+      msg.style.left = '50%';
+      msg.style.transform = 'translate(-50%, -50%)';
+      msg.style.zIndex = '35';
+      msg.style.color = 'var(--yellow)';
+      msg.style.fontSize = '1.5rem';
+      msg.style.textShadow = '0 0 10px rgba(255,225,53,0.8)';
+      msg.textContent = 'FOI POR ISSO QUE VOCÊ COMEU A FLOR';
+      document.body.appendChild(msg);
+      tocarGritoTerror();
+      setTimeout(() => msg.remove(), 3000);
+      setTimeout(() => {
+        document.getElementById('btn-continuar-hermes').style.display = 'block';
+      }, 3500);
+    });
+
+    document.getElementById('btn-nao-falar').addEventListener('click', () => {
+      document.getElementById('botoes-hermes').style.display = 'none';
+      const frases = ['PENSE PEQUENO, ENTÃO ME RESPONDA', 'VOCÊ SE ACHA IMPORTANTE?', 'POR QUE VOCÊ COMEU A FLOR?'];
+      let index = 0;
+      const loop = setInterval(() => {
+        const msg = document.createElement('div');
+        msg.className = 'fala-hermes';
+        msg.style.position = 'fixed';
+        msg.style.top = '50%';
+        msg.style.left = '50%';
+        msg.style.transform = 'translate(-50%, -50%)';
+        msg.textContent = frases[index % frases.length];
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 2000);
+        index++;
+        if (index > 8) {
+          clearInterval(loop);
+          setTimeout(() => {
+            document.getElementById('btn-continuar-hermes').style.display = 'block';
+          }, 2000);
+        }
+      }, 2500);
+    });
+
+    const btnContinuar = document.createElement('button');
+    btnContinuar.className = 'btn dourado';
+    btnContinuar.id = 'btn-continuar-hermes';
+    btnContinuar.textContent = 'CONTINUAR';
+    btnContinuar.style.display = 'none';
+    btnContinuar.style.marginTop = '2rem';
+    document.getElementById('tela-hermes').appendChild(btnContinuar);
+    btnContinuar.addEventListener('click', () => {
+      mostrarTela('tela-mundo');
+      iniciarMundo();
+    });
+  }
+
+  // ========== MUNDO GIRANDO ==========
+  function iniciarMundo() {
+    const falas = [
+      'fala-mundo-1',
+      'fala-mundo-2',
+      'fala-mundo-3',
+      'fala-mundo-4',
+      'fala-mundo-5',
+      'fala-mundo-6'
+    ];
+    falas.forEach((f, i) => {
+      setTimeout(() => {
+        document.getElementById(f).style.display = 'block';
+        tocarSom('sawtooth', 200 + i * 50, 0.5);
+      }, 500 + i * 2000);
+    });
+    setTimeout(() => {
+      document.getElementById('botoes-mundo').style.display = 'flex';
+    }, 500 + falas.length * 2000 + 500);
+
+    document.getElementById('btn-sou-pequeno').addEventListener('click', () => {
+      document.getElementById('botoes-mundo').style.display = 'none';
+      document.getElementById('resposta-mundo').textContent = 'É COMO UMA MINI MOSCA EM UMA TEIA, ASSIM UMA ARANHA';
+      document.getElementById('resposta-mundo').style.display = 'block';
+      tocarSom('triangle', 300, 0.5);
+      // Efeito teia de aranha
+      const teia = document.createElement('div');
+      teia.style.position = 'fixed';
+      teia.style.inset = '0';
+      teia.style.background = 'radial-gradient(circle, transparent 40%, rgba(255,255,255,0.1) 70%, rgba(0,0,0,0.5))';
+      teia.style.pointerEvents = 'none';
+      teia.style.zIndex = '25';
+      document.body.appendChild(teia);
+      setTimeout(() => teia.remove(), 3000);
+      document.getElementById('btn-continuar-mundo').style.display = 'block';
+    });
+
+    document.getElementById('btn-sou-grande').addEventListener('click', () => {
+      document.getElementById('botoes-mundo').style.display = 'none';
+      document.getElementById('resposta-mundo').textContent = 'SE EU MENTIROSO FOSSE UM MENTIROSO, ESTÁ MENTINDO PARA O MAIOR MENTIROSO DO MUNDO';
+      document.getElementById('resposta-mundo').style.display = 'block';
+      tocarRisadaSinister();
+      spamRisadas(5);
+      document.getElementById('btn-continuar-mundo').style.display = 'block';
+    });
+
+    document.getElementById('btn-continuar-mundo').addEventListener('click', () => {
+      mostrarTela('tela-flor');
+      iniciarFlor();
+    });
+  }
+
+  // ========== FLOR ==========
+  function iniciarFlor() {
+    const falas = [
+      'fala-flor-1',
+      'fala-flor-2',
+      'fala-flor-3',
+      'fala-flor-4',
+      'fala-flor-5',
+      'fala-flor-6',
+      'fala-flor-7',
+      'fala-flor-8'
+    ];
+    falas.forEach((f, i) => {
+      setTimeout(() => {
+        document.getElementById(f).style.display = 'block';
+        if (i === 5) tocarRisadaSinister();
+        if (i === 7) tocarGritoTerror();
+        else tocarSom('triangle', 300 + i * 50, 0.3);
+      }, 800 + i * 1200);
+    });
+    setTimeout(() => {
+      document.getElementById('botoes-flor').style.display = 'flex';
+    }, 800 + falas.length * 1200 + 500);
+
+    document.getElementById('btn-comer-flor').addEventListener('click', () => {
+      state.comeuFlor = true;
+      document.getElementById('botoes-flor').style.display = 'none';
+      spamFlores(3);
+      document.getElementById('resposta-flor').textContent = 'VOCÊ QUIS FALAR MAS NÃO CONSEGUIU, NEM COM ISSO CONSEGUIU';
+      document.getElementById('resposta-flor').style.display = 'block';
+      tocarGritoTerror();
+      setTimeout(() => {
+        document.getElementById('btn-continuar-flor').style.display = 'block';
+      }, 3000);
+    });
+
+    document.getElementById('btn-perguntar-flor').addEventListener('click', () => {
+      document.getElementById('botoes-flor').style.display = 'none';
+      const respostas = [
+        'POR QUE VOCÊ COMEU A FLOR?',
+        'PARA TER O PODER DE FALAR, ERA PARA ISSO?',
+        'PENSA...',
+        'VOCÊ SÓ PARA CONSEGUIR SALVAR ELA?',
+        'VOCÊ NEM SABIA O PODER QUE ELA IA DAR',
+        'NEM ENTENDEU COMO ELA FUNCIONA',
+        'VOCÊ NEM CHEGOU A CONHECER ELA',
+        'SUA AMIGA NÃO VAI VOLTAR'
+      ];
+      let i = 0;
+      const intervalo = setInterval(() => {
+        if (i >= respostas.length) {
+          clearInterval(intervalo);
+          document.getElementById('btn-continuar-flor').style.display = 'block';
+          return;
+        }
+        document.getElementById('resposta-flor').textContent = respostas[i];
+        document.getElementById('resposta-flor').style.display = 'block';
+        tocarSom('triangle', 400 + i * 30, 0.4);
+        i++;
+      }, 1500);
+    });
+
+    document.getElementById('btn-continuar-flor').addEventListener('click', () => {
+      iniciarPerguntas();
+    });
+  }
+
+  // ========== PERGUNTAS ==========
+  const perguntas = [
+    { texto: 'VOCÊ ACHA QUE É MELHOR QUE EU?', respostas: { sim: 'ENGRAÇADO', nao: 'INTERESSANTE DA SUA PARTE' } },
+    { texto: 'VOCÊ ACHA QUE EU SOU INTELIGENTE?', respostas: { sim: 'OBVIAMENTE, EU SOU. EU SEI DE TUDO.', nao: 'VOCÊ É CORAJOSO... OU BURRO.' } },
+    { texto: 'VOCÊ CONSEGUE SALVAR SUA AMIGA?', respostas: { sim: 'ERRADO. VOCÊ NÃO VAI CONSEGUIR.', nao: 'VOCÊ É PATÉTICO, PELO MENOS ACEITOU A VERDADE. VOCÊ ACEITOU A VERDADE, MAS MESMO ASSIM É PATÉTICO.' } }
+  ];
+  let perguntaAtual = 0;
+
+  function iniciarPerguntas() {
+    mostrarTela('tela-perguntas');
+    perguntaAtual = 0;
+    mostrarPergunta();
+  }
+
+  function mostrarPergunta() {
+    if (perguntaAtual >= perguntas.length) {
+      setTimeout(() => iniciarAmiga(), 500);
+      return;
+    }
+    const pergunta = perguntas[perguntaAtual];
+    document.getElementById('pergunta-texto').textContent = pergunta.texto;
+    document.getElementById('resposta-hermes-pergunta').style.display = 'none';
+    document.getElementById('botoes-pergunta').style.display = 'flex';
+    document.getElementById('btn-proxima-pergunta').style.display = 'none';
+    tocarSom('triangle', 800, 0.3);
+  }
+
+  document.querySelectorAll('#botoes-pergunta .btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const resposta = e.target.dataset.resposta;
+      state.respostas[perguntaAtual] = resposta;
+      const pergunta = perguntas[perguntaAtual];
+      const textoResposta = pergunta.respostas[resposta];
+      document.getElementById('resposta-hermes-pergunta').textContent = textoResposta;
+      document.getElementById('resposta-hermes-pergunta').style.display = 'block';
+      document.getElementById('botoes-pergunta').style.display = 'none';
+      document.getElementById('btn-proxima-pergunta').style.display = 'block';
+      if (resposta === 'sim') spamRisadas(2);
+      else tocarSom('triangle', 500, 0.4);
+    });
+  });
+
+  document.getElementById('btn-proxima-pergunta').addEventListener('click', () => {
+    perguntaAtual++;
+    if (perguntaAtual < perguntas.length) {
+      mostrarPergunta();
+    } else {
+      iniciarAmiga();
+    }
+  });
+
+  // ========== AMIGA FALECIDA ==========
+  function iniciarAmiga() {
+    mostrarTela('tela-amiga');
+    const falas = [
+      'fala-amiga-1',
+      'fala-amiga-2',
+      'fala-amiga-3',
+      'fala-amiga-4'
+    ];
+    falas.forEach((f, i) => {
+      setTimeout(() => {
+        document.getElementById(f).style.display = 'block';
+        tocarSom('triangle', 400 + i * 50, 0.4);
+      }, 800 + i * 1200);
+    });
+    setTimeout(() => {
+      document.getElementById('botoes-amiga').style.display = 'flex';
+    }, 800 + falas.length * 1200 + 500);
+
+    document.getElementById('btn-ouvir-amiga').addEventListener('click', () => {
+      document.getElementById('botoes-amiga').style.display = 'none';
+      document.getElementById('mascara-amiga').style.display = 'block';
+      document.getElementById('fala-amiga-resposta').textContent = 'Ó, QUE FOFO';
+      document.getElementById('fala-amiga-resposta').style.display = 'block';
+      tocarPedidoAjuda();
+      setTimeout(() => tocarGritoTerror(), 1000);
+      const mensagens = [
+        'EU TÔ AQUI',
+        'EU AINDA TÔ VIVA',
+        'EU SEI QUE NÃO VAI ME SALVAR',
+        'EU VOU MORRER',
+        'NINGUÉM VAI ME AJUDAR',
+        'EU ESTOU CHORANDO',
+        'EU QUERO AJUDA',
+        'EU TÔ COM MEDO',
+        'O QUE ACONTECEU?',
+        'POR QUE O HERMES TÁ AQUI?'
+      ];
+      const container = document.getElementById('mensagens-amiga');
+      container.style.display = 'block';
+      mensagens.forEach((msg, i) => {
+        setTimeout(() => {
+          const div = document.createElement('div');
+          div.className = 'fala-hermes';
+          div.textContent = msg;
+          container.appendChild(div);
+          tocarSom('sine', 500 - i * 10, 0.5);
+        }, 2000 + i * 1200);
+      });
+      setTimeout(() => {
+        container.innerHTML = '';
+        document.getElementById('mascara-amiga').style.display = 'none';
+        document.getElementById('fala-amiga-resposta').textContent = 'É, ACABOU A CONVERSA';
+        document.getElementById('fala-amiga-resposta').style.display = 'block';
+        document.getElementById('btn-continuar-amiga').style.display = 'block';
+      }, 2000 + mensagens.length * 1200 + 1000);
+    });
+
+    document.getElementById('btn-nao-ouvir').addEventListener('click', () => {
+      document.getElementById('botoes-amiga').style.display = 'none';
+      document.getElementById('mascara-amiga').style.display = 'block';
+      document.getElementById('fala-amiga-resposta').textContent = 'VOCÊ DESISTIU DELA E ELA SABE';
+      document.getElementById('fala-amiga-resposta').style.display = 'block';
+      tocarChoro();
+      const mensagens = [
+        'O QUE PORRA ACONTECEU?',
+        'VOCÊ NÃO VAI ME SALVAR?',
+        'EU ESTOU CONDENADA',
+        'MINHA VIDA ACABOU',
+        'TUDO ACABOU'
+      ];
+      const container = document.getElementById('mensagens-amiga');
+      container.style.display = 'block';
+      mensagens.forEach((msg, i) => {
+        setTimeout(() => {
+          const div = document.createElement('div');
+          div.className = 'fala-hermes';
+          div.textContent = msg;
+          container.appendChild(div);
+          tocarSom('sine', 400 - i * 20, 0.5);
+        }, 1500 + i * 1000);
+      });
+      setTimeout(() => {
+        container.innerHTML = '';
+        document.getElementById('mascara-amiga').style.display = 'none';
+        document.getElementById('fala-amiga-resposta').textContent = 'É, ACABOU A CONVERSA';
+        document.getElementById('fala-amiga-resposta').style.display = 'block';
+        document.getElementById('btn-continuar-amiga').style.display = 'block';
+      }, 1500 + mensagens.length * 1000 + 1000);
+    });
+
+    document.getElementById('btn-continuar-amiga').addEventListener('click', () => {
+      iniciarAlmas();
+    });
+  }
+
+  // ========== ALMAS SUBINDO ==========
+  function iniciarAlmas() {
+    mostrarTela('tela-almas');
+    criarAlmas();
+    document.getElementById('botoes-almas').style.display = 'flex';
+    document.getElementById('resposta-almas').style.display = 'none';
+    document.getElementById('btn-continuar-almas').style.display = 'none';
+    tocarSom('sine', 500, 0.5);
+
+    document.getElementById('btn-juntar').addEventListener('click', () => {
+      document.getElementById('resposta-almas').textContent = 'VOCÊ ACEITOU.';
+      document.getElementById('resposta-almas').style.display = 'block';
+      document.getElementById('botoes-almas').style.display = 'none';
+      document.getElementById('btn-continuar-almas').style.display = 'block';
+      tocarSino();
+    });
+
+    document.getElementById('btn-resistir').addEventListener('click', () => {
+      document.getElementById('resposta-almas').textContent = 'VOCÊ É TEIMOSO... ISSO É DIVERTIDO.';
+      document.getElementById('resposta-almas').style.display = 'block';
+      document.getElementById('botoes-almas').style.display = 'none';
+      document.getElementById('btn-continuar-almas').style.display = 'block';
+    });
+
+    document.getElementById('btn-perguntar-amiga-de-novo').addEventListener('click', () => {
+      document.getElementById('resposta-almas').textContent = 'ELA ESTÁ AQUI... VOCÊ QUER FALAR COM ELA DE NOVO?';
+      document.getElementById('resposta-almas').style.display = 'block';
+      document.getElementById('botoes-almas').style.display = 'none';
+      document.getElementById('btn-continuar-almas').style.display = 'block';
+    });
+
+    document.getElementById('btn-continuar-almas').addEventListener('click', () => {
+      iniciarLua();
+    });
+  }
+
+  // ========== LUA VERMELHA ==========
+  function iniciarLua() {
+    mostrarTela('tela-lua');
+    const lua = document.getElementById('lua');
+    const textoLua = document.getElementById('texto-lua');
+    const grito1 = document.getElementById('grito-hermes-1');
+    const grito2 = document.getElementById('grito-hermes-2');
+    const botoes = document.getElementById('botoes-lua');
+    const textoFinal = document.getElementById('texto-final-escolha');
+
+    // Mostrar lua amarela
+    document.getElementById('texto-lua-amarela').style.display = 'block';
+    lua.style.display = 'block';
+    lua.classList.remove('vermelha');
+
+    setTimeout(() => {
+      iniciarRuidoCrescente(1.5);
+      lua.style.animation = 'pulsarLua 0.5s ease-in-out infinite alternate';
+    }, 2000);
+
+    setTimeout(() => {
+      lua.classList.add('vermelha');
+      tocarGrito();
+      ativarTelaCorrompida(true);
+      ativarGlitchRGB(true);
+      textoLua.style.display = 'block';
+      grito1.style.display = 'block';
+      setTimeout(() => grito2.style.display = 'block', 300);
+      let piscadas = 0;
+      const piscarInterval = setInterval(() => {
+        piscadas++;
+        lua.style.visibility = (lua.style.visibility === 'hidden' ? 'visible' : 'hidden');
+        if (piscadas > 6) {
+          clearInterval(piscarInterval);
+          lua.style.visibility = 'visible';
+          botoes.style.display = 'flex';
+          ativarTelaCorrompida(false);
+          ativarGlitchRGB(false);
+        }
+      }, 200);
+    }, 3500);
+
+    document.getElementById('btn-acalmar-lua').addEventListener('click', () => {
+      botoes.style.display = 'none';
+      textoFinal.style.display = 'block';
+      textoFinal.textContent = 'SE EU TENTAR, ESSE É O FIM, NÃO TEM COMO ME ACALMAR';
+      tocarGritoTerror();
+      setTimeout(() => {
+        textoFinal.textContent = 'VOCÊ NÃO TEM COMO';
+        tocarGritoTerror();
+      }, 2000);
+      setTimeout(() => {
+        textoFinal.textContent = 'CHEGAR ATÉ AQUI, VOCÊ NÃO TEM COMO CONTINUAR';
+        tocarGritoTerror();
+      }, 4000);
+      setTimeout(() => {
+        mostrarTela('tela-fim');
+        document.getElementById('texto-fim-1').textContent = 'VOCÊ NÃO TEM COMO';
+        document.getElementById('texto-fim-2').textContent = 'CHEGAR ATÉ AQUI, VOCÊ NÃO TEM COMO CONTINUAR';
+        document.getElementById('btn-reiniciar').style.display = 'block';
+      }, 6000);
+    });
+
+    document.getElementById('btn-aceitar-lua').addEventListener('click', () => {
+      botoes.style.display = 'none';
+      textoFinal.style.display = 'block';
+      textoFinal.textContent = 'ACEITA A ARANHA NO FINAL TE COMER. NO FINAL, SUA VIDA ACABARÁ.';
+      tocarRisadaSinister();
+      setTimeout(() => {
+        mostrarTela('tela-fim');
+        document.getElementById('texto-fim-1').textContent = 'ACEITA A ARANHA NO FINAL TE COMER';
+        document.getElementById('texto-fim-2').textContent = 'NO FINAL, SUA VIDA ACABARÁ';
+        document.getElementById('btn-reiniciar').style.display = 'block';
+      }, 3000);
+    });
+  }
+
+  // ========== INICIALIZAÇÃO ==========
+  function iniciar() {
+    criarRunasDecorativas();
+    criarPoeiraDourada();
+    criarPalavraCanto();
+    iniciarIntro();
+    document.getElementById('btn-iniciar-intro').addEventListener('click', () => {
+      initAudio();
+      tocarSom('sine', 600, 0.3);
+      mostrarTela('tela-hermes');
+      iniciarHermes();
+    });
+    document.getElementById('btn-reiniciar').addEventListener('click', () => {
+      location.reload();
+    });
+    if (navigator.userAgent.match(/iPhone|iPad|Android/i)) {
+      document.getElementById('frame').style.height = window.innerHeight + 'px';
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', iniciar);
+  } else {
+    iniciar();
+  }
+</script>
+</body>
+</html>

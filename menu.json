@@ -1,0 +1,52 @@
+{
+  "menu": {
+    "titulo": "C.O.R.E.",
+    "corPrimaria": "#d4af37",
+    "corSecundaria": "#8b1a1a",
+    "tempoGlitch": 5000,
+    "senhaMestre": "NAUTILUS",
+    "brilho": 1
+  },
+  "itens": [
+    {
+      "titulo": "Bestiário do Caçador",
+      "descricao": "Feito pelo caçador, lenhador e estudioso.",
+      "arquivo": "bestiario.html",
+      "senha": "",
+      "aviso": "Feito pelo caçador, lenhador e estudioso",
+      "categoria": ""
+    },
+    {
+      "titulo": "História dos Elfos",
+      "descricao": "Compêndio de Origem, Racionalidade e Estrutura",
+      "arquivo": "elfos.html",
+      "senha": "",
+      "aviso": "",
+      "categoria": ""
+    },
+    {
+      "titulo": "Os ultimos relatos",
+      "descricao": "eu sinto ela em minha mente",
+      "arquivo": "relatos.html",
+      "senha": "elyria",
+      "aviso": "isso sao os relatos de Altheris Vonn",
+      "categoria": ""
+    },
+    {
+      "titulo": "Sua amiguinha",
+      "descricao": "Não quer usar mais que o falar.",
+      "arquivo": "Kael.html",
+      "senha": "flor",
+      "aviso": "kael kael kael saulo",
+      "categoria": ""
+    },
+    {
+      "titulo": "Arkhaven",
+      "descricao": "lua vemelhar",
+      "arquivo": "Loki.html",
+      "senha": "percepcao",
+      "aviso": "loki",
+      "categoria": ""
+    }
+  ]
+}
