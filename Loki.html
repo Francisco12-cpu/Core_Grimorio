@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LOKI — A Ilusão</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --verde: #00ff66;
+    --verde-escuro: #006633;
+    --vermelho: #ff1e1e;
+    --roxo: #9b30ff;
+    --dourado: #d4af37;
+    --preto: #050505;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+
+  html, body {
+    height: 100%;
+    background: var(--preto);
+    overflow: hidden;
+    font-family: 'Cinzel', serif;
+    touch-action: manipulation;
+  }
+
+  #stage {
+    position: relative;
+    width: 100vw;
+    height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--preto);
+  }
+
+  #frame {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #0a0a0a;
+    overflow: hidden;
+  }
+
+  .bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, #0a1a0a 0%, #000 70%);
+    z-index: 0;
+    animation: pulsarBg 8s ease-in-out infinite alternate;
+  }
+  @keyframes pulsarBg {
+    from { filter: brightness(0.7); }
+    to { filter: brightness(1.3); }
+  }
+  .bg::before {
+    content: '';
+    position: absolute;
+    left:0; right:0; bottom:0;
+    height: 60%;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(0,255,102,0.25) 0 1px, transparent 1px 60px),
+      repeating-linear-gradient(90deg, rgba(0,255,102,0.25) 0 1px, transparent 1px 60px);
+    transform: perspective(400px) rotateX(60deg);
+    transform-origin: bottom;
+    opacity: 0.7;
+  }
+
+  .noise {
+    position: absolute; inset: 0; pointer-events: none;
+    opacity: 0.3; mix-blend-mode: overlay; z-index: 5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: noise-shift 0.25s steps(3) infinite;
+  }
+  @keyframes noise-shift {
+    0% { transform: translate(0,0); } 33% { transform: translate(-4%,3%); }
+    66% { transform: translate(4%,-3%); } 100% { transform: translate(0,0); }
+  }
+  .scanlines {
+    position: absolute; inset: 0; pointer-events: none; z-index: 5;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.3) 0 1px, transparent 1px 3px);
+    opacity: 0.8;
+  }
+
+  .tela {
+    position: absolute; inset: 0;
+    display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 3vh 4vw; gap: 1.5vh;
+    z-index: 10;
+    overflow-y: auto;
+  }
+  .tela.ativa { display: flex; }
+
+  .fala-loki {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1rem, 2.5vw, 1.6rem);
+    font-weight: 700;
+    color: var(--verde);
+    text-shadow: 0 0 20px rgba(0,255,102,1), 0 0 40px rgba(0,255,102,0.6);
+    max-width: 44ch;
+    line-height: 1.4;
+    letter-spacing: 1px;
+    animation: pulsarTexto 1.5s ease-in-out infinite alternate;
+  }
+  @keyframes pulsarTexto {
+    from { opacity: 0.8; }
+    to { opacity: 1; text-shadow: 0 0 35px rgba(0,255,102,1), 0 0 70px rgba(0,255,102,0.8); }
+  }
+  .fala-vermelha {
+    color: var(--vermelho);
+    text-shadow: 0 0 25px rgba(255,30,30,1), 0 0 50px rgba(255,30,30,0.7);
+  }
+  .fala-roxa {
+    color: var(--roxo);
+    text-shadow: 0 0 25px rgba(155,48,255,1), 0 0 50px rgba(155,48,255,0.7);
+  }
+
+  .btn {
+    font-family: 'Share Tech Mono', monospace;
+    background: transparent; border: 2px solid var(--verde); color: var(--verde);
+    padding: 0.6rem 1.2rem; font-size: clamp(0.75rem, 1.8vw, 0.95rem);
+    letter-spacing: 2px; cursor: pointer; border-radius: 2px;
+    transition: all 0.15s;
+    touch-action: manipulation;
+    text-shadow: 0 0 5px var(--verde);
+  }
+  .btn:active { background: var(--verde); color: #000; }
+  .btn.vermelho { border-color: var(--vermelho); color: var(--vermelho); text-shadow: 0 0 5px var(--vermelho); }
+  .btn.vermelho:active { background: var(--vermelho); color: #000; }
+  .btn.roxo { border-color: var(--roxo); color: var(--roxo); text-shadow: 0 0 5px var(--roxo); }
+  .btn.roxo:active { background: var(--roxo); color: #000; }
+  .btn-row { display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: center; }
+
+  .runa-nordica {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+    font-family: 'Cinzel', serif;
+    color: var(--verde);
+    opacity: 0.3;
+    text-shadow: 0 0 10px var(--verde);
+    animation: flutuarRuna 8s infinite alternate ease-in-out;
+    user-select: none;
+  }
+  @keyframes flutuarRuna {
+    from { transform: translateY(0) rotate(0deg) scale(1); opacity: 0.2; }
+    to   { transform: translateY(-30px) rotate(15deg) scale(1.5); opacity: 0.5; }
+  }
+
+  .porta {
+    display: inline-block;
+    width: 50px; height: 80px;
+    border: 3px solid;
+    margin: 0 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .porta.verde { border-color: var(--verde); box-shadow: 0 0 20px var(--verde); }
+  .porta.vermelha { border-color: var(--vermelho); box-shadow: 0 0 20px var(--vermelho); }
+  .porta:active { transform: scale(0.85) rotate(3deg); }
+
+  .barra-progresso {
+    width: min(80vw, 400px);
+    height: 10px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 0.8rem 0;
+  }
+  .barra-progresso .preench {
+    height: 100%;
+    background: var(--verde);
+    box-shadow: 0 0 20px var(--verde);
+    transition: width 0.3s;
+  }
+
+  .falso-fim {
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    color: var(--vermelho);
+    text-shadow: 0 0 40px var(--vermelho);
+    animation: piscarFim 0.3s infinite alternate;
+  }
+  @keyframes piscarFim {
+    from { opacity: 0.2; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1.1); }
+  }
+
+  .moeda {
+    display: inline-block;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #d4af37, #8B6914);
+    box-shadow: 0 0 20px var(--dourado);
+    margin: 0 10px;
+  }
+
+  /* Lua Vermelha */
+  .lua-vermelha-container {
+    position: relative;
+    width: min(50vw, 180px);
+    height: min(50vw, 180px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+  }
+  .lua-vermelha {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #ff6060, #cc0000 60%, #660000 90%);
+    box-shadow: 0 0 60px rgba(255,0,0,1), 0 0 120px rgba(255,0,0,0.8);
+    animation: piscarLuaVermelha 0.8s ease-in-out infinite alternate;
+    position: absolute;
+  }
+  @keyframes piscarLuaVermelha {
+    from { opacity: 0.3; box-shadow: 0 0 30px rgba(255,0,0,0.8); }
+    to { opacity: 1; box-shadow: 0 0 100px rgba(255,0,0,1), 0 0 200px rgba(255,0,0,0.9); }
+  }
+  .olho-na-lua {
+    position: absolute;
+    width: 35%;
+    height: 18%;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  .olho-na-lua.mostrar { opacity: 1; }
+  .olho-na-lua svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 20px rgba(255,0,0,1));
+  }
+
+  /* Olhos separados */
+  .olhos-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    position: relative;
+    width: min(80vw, 400px);
+    margin: 0 auto;
+  }
+  .olho-grande {
+    width: 90px;
+    height: 45px;
+    position: relative;
+    animation: olhoAbrirFechar 4s ease-in-out infinite;
+  }
+  .olho-grande svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 25px rgba(155,48,255,1));
+  }
+  @keyframes olhoAbrirFechar {
+    0% { transform: scaleY(0); }
+    20% { transform: scaleY(1); }
+    80% { transform: scaleY(1); }
+    100% { transform: scaleY(0); }
+  }
+  .circulo-runas {
+    position: absolute;
+    inset: -30px;
+    border: 2px solid var(--verde);
+    border-radius: 50%;
+    box-shadow: 0 0 30px rgba(0,255,102,0.5);
+    animation: girarRunas 5s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes girarRunas {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .runas-girando {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    animation: girarRunas 4s linear infinite;
+  }
+
+  /* Símbolo de Loki (S) */
+  .simbolo-loki {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(2rem, 6vw, 4rem);
+    color: var(--verde);
+    text-shadow: 0 0 20px var(--verde), 0 0 40px var(--verde);
+    animation: pulsarSimbolo 2s ease-in-out infinite alternate;
+  }
+  @keyframes pulsarSimbolo {
+    from { opacity: 0.6; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1.1); }
+  }
+
+  /* Palavras aleatórias */
+  .palavra-aleatoria {
+    position: fixed;
+    z-index: 20;
+    pointer-events: none;
+    font-family: 'Cinzel', serif;
+    color: var(--verde);
+    text-shadow: 0 0 15px var(--verde);
+    opacity: 0;
+    animation: aparecerPalavra 4s forwards;
+    white-space: nowrap;
+    font-size: clamp(0.8rem, 2vw, 1.2rem);
+  }
+  @keyframes aparecerPalavra {
+    0% { opacity: 0; transform: translateY(20px); }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-20px); }
+  }
+
+  @media (max-width: 600px) {
+    .btn { padding: 0.5rem 1rem; font-size: 0.75rem; }
+    .fala-loki { font-size: clamp(0.85rem, 2vw, 1.2rem); }
+    .porta { width: 45px; height: 70px; }
+    .olho-grande { width: 70px; height: 35px; }
+    .lua-vermelha-container { width: min(45vw, 150px); height: min(45vw, 150px); }
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="frame">
+    <div class="bg" id="fundo"></div>
+    <div class="noise"></div>
+    <div class="scanlines"></div>
+    <div id="runas-girando-container"></div>
+
+    <!-- Cena 0: Intro -->
+    <div class="tela ativa" id="tela-intro">
+      <div class="simbolo-loki">ᛚᛟᚲᛁ</div>
+      <div class="fala-loki">A ILUSÃO DO MAGO LOUCO</div>
+      <button class="btn" id="btn-iniciar">COMEÇAR</button>
+    </div>
+
+    <!-- Cena 1: Aparição de Loki -->
+    <div class="tela" id="tela-aparicao">
+      <div class="fala-loki" id="fala-aparicao-1">Olaty...</div>
+      <div class="fala-loki" id="fala-aparicao-2" style="display:none;">Você acha que está no controle?</div>
+      <div class="fala-loki" id="fala-aparicao-3" style="display:none;">Eu sou Loki.</div>
+      <div class="fala-loki" id="fala-aparicao-4" style="display:none;">E nada é o que parece.</div>
+      <button class="btn" id="btn-avancar-aparicao" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- Cena 2: Duas portas -->
+    <div class="tela" id="tela-portas">
+      <div class="fala-loki">Escolha uma porta.</div>
+      <div class="btn-row" id="portas-row">
+        <div class="porta verde" id="porta-verde"></div>
+        <div class="porta vermelha" id="porta-vermelha"></div>
+      </div>
+      <div class="fala-loki" id="resposta-porta" style="display:none;">Ambas levam ao mesmo lugar. Eu menti.</div>
+      <button class="btn" id="btn-continuar-portas" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- Cena 3: Falso Fim -->
+    <div class="tela" id="tela-falso-fim">
+      <div class="falso-fim" id="falso-fim-texto">FIM</div>
+      <div class="fala-loki" id="fala-falso-fim" style="display:none;">Você achou mesmo que tinha acabado?</div>
+      <button class="btn" id="btn-continuar-falso-fim" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- Cena 4: Jogo da Moeda -->
+    <div class="tela" id="tela-moeda">
+      <div class="fala-loki">Tenho uma moeda em uma das mãos. Escolha.</div>
+      <div class="btn-row" id="moedas-row">
+        <div class="moeda" id="moeda-esquerda"></div>
+        <div class="moeda" id="moeda-direita"></div>
+      </div>
+      <div class="fala-loki" id="resposta-moeda" style="display:none;">Errado. Sempre errado.</div>
+      <button class="btn" id="btn-continuar-moeda" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- Cena 5: Ilusão de Progresso -->
+    <div class="tela" id="tela-progresso">
+      <div class="fala-loki">Observe seu progresso.</div>
+      <div class="barra-progresso"><div class="preench" id="barra-preench" style="width:0%;"></div></div>
+      <div class="fala-loki" id="resposta-progresso" style="display:none;">Não há progresso. Só ilusão.</div>
+      <button class="btn" id="btn-continuar-progresso" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- Cena 6: Labirinto -->
+    <div class="tela" id="tela-labirinto">
+      <div class="fala-loki">Você está em um labirinto. Escolha: esquerda ou direita?</div>
+      <div class="btn-row" id="labirinto-botoes">
+        <button class="btn" id="labirinto-esquerda">ESQUERDA</button>
+        <button class="btn vermelho" id="labirinto-direita">DIREITA</button>
+      </div>
+      <div class="fala-loki" id="resposta-labirinto" style="display:none;">Ambos levam ao mesmo corredor. Não há saída.</div>
+      <button class="btn" id="btn-continuar-labirinto" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- Cena 7: Vozes em Eco -->
+    <div class="tela" id="tela-eco">
+      <div class="fala-loki" id="eco-texto">Você ouviu isso?</div>
+      <div id="eco-mensagens" style="min-height:80px;"></div>
+      <button class="btn" id="btn-continuar-eco" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- Cena 8: Inventário Falso -->
+    <div class="tela" id="tela-inventario">
+      <div class="fala-loki">Seu inventário:</div>
+      <div class="btn-row" id="inventario-itens">
+        <button class="btn" id="item-flor">FLOR</button>
+        <button class="btn" id="item-moeda">MOEDA</button>
+        <button class="btn vermelho" id="item-vermelho">VERMELHO</button>
+      </div>
+      <div class="fala-loki" id="resposta-inventario" style="display:none;"></div>
+      <button class="btn" id="btn-continuar-inventario" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- Cena 9: Pergunta Sem Resposta -->
+    <div class="tela" id="tela-pergunta-sem-resposta">
+      <div class="fala-loki">O que eu estou pensando agora?</div>
+      <div class="btn-row" id="pergunta-sem-resposta-botoes">
+        <button class="btn" id="resp-pensando-1">NADA</button>
+        <button class="btn vermelho" id="resp-pensando-2">VOCÊ</button>
+        <button class="btn roxo" id="resp-pensando-3">MORTE</button>
+      </div>
+      <div class="fala-loki" id="resposta-pensando" style="display:none;">Errado. Eu nem sei o que estou pensando.</div>
+      <button class="btn" id="btn-continuar-pensando" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- Cena 10: Clone do Jogador -->
+    <div class="tela" id="tela-clone-jogador">
+      <div class="fala-loki" id="fala-clone-jogador-1">Olhe para ele. É você.</div>
+      <div id="clone-jogador-container" style="position:relative; width:120px; height:120px;"></div>
+      <div class="fala-loki" id="fala-clone-jogador-2" style="display:none;">Ele disse coisas que você nunca disse.</div>
+      <button class="btn" id="btn-continuar-clone-jogador" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- Cena 11: Memória Distorcida -->
+    <div class="tela" id="tela-memoria">
+      <div class="fala-loki">Você se lembra do que fez, não lembra?</div>
+      <div class="fala-loki" id="resposta-memoria" style="display:none;">Eu inventei essa memória. Você duvidou de si mesmo.</div>
+      <button class="btn" id="btn-continuar-memoria" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- Cena 12: Metamorfose -->
+    <div class="tela" id="tela-metamorfose">
+      <div class="fala-loki" id="fala-metamorfose-1">Eu tenho muitas formas.</div>
+      <div id="simbolo-mutante" style="width:180px; height:180px;">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="100" r="80" fill="none" stroke="#00ff66" stroke-width="3"/>
+          <path id="forma-mutante" d="M100,50 Q150,100 100,150 Q50,100 100,50" fill="none" stroke="#ff1e1e" stroke-width="4"/>
+        </svg>
+      </div>
+      <div class="fala-loki" id="fala-metamorfose-2" style="display:none;">Serpente, lobo, fogo... e você.</div>
+      <button class="btn" id="btn-continuar-metamorfose" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- Cena 13: Caos Final -->
+    <div class="tela" id="tela-caos">
+      <div class="fala-loki">Agora, o caos.</div>
+      <div class="fala-loki" id="fala-caos-1" style="display:none;">Serpentes, lobos e fogo.</div>
+      <div class="fala-loki" id="fala-caos-2" style="display:none;">Você é meu. Para sempre.</div>
+      <button class="btn" id="btn-ver-lua" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- Cena 14: Lua Vermelha -->
+    <div class="tela" id="tela-lua-vermelha">
+      <div class="fala-vermelha" style="font-size:1.8rem; text-shadow: 0 0 40px var(--vermelho);">LUA VERMELHA</div>
+      <div class="lua-vermelha-container" id="lua-vermelha-container">
+        <div class="lua-vermelha" id="lua-vermelha">
+          <div class="olho-na-lua" id="olho-na-lua">
+            <svg viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10,25 Q50,0 90,25 Q50,50 10,25 Z" fill="#fff" stroke="#000" stroke-width="2"/>
+              <circle cx="50" cy="25" r="10" fill="#000"/>
+              <circle cx="50" cy="25" r="5" fill="#ff0000"/>
+              <circle cx="53" cy="22" r="2" fill="#fff"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div id="textos-lua" style="min-height:80px; max-width:80vw;"></div>
+      <button class="btn vermelho" id="btn-continuar-lua" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- Cena 15: Olhos Separados -->
+    <div class="tela" id="tela-olhos">
+      <div class="olhos-container" id="olhos-container">
+        <div class="circulo-runas"></div>
+        <div class="olho-grande" id="olho-esquerdo">
+          <svg viewBox="0 0 120 60" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10,30 Q60,0 110,30 Q60,60 10,30 Z" fill="#fff" stroke="#000" stroke-width="3"/>
+            <circle cx="60" cy="30" r="15" fill="#000"/>
+            <circle cx="60" cy="30" r="8" fill="#9b30ff"/>
+            <circle cx="63" cy="27" r="3" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="olho-grande" id="olho-direito">
+          <svg viewBox="0 0 120 60" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10,30 Q60,0 110,30 Q60,60 10,30 Z" fill="#fff" stroke="#000" stroke-width="3"/>
+            <circle cx="60" cy="30" r="15" fill="#000"/>
+            <circle cx="60" cy="30" r="8" fill="#ff1e1e"/>
+            <circle cx="63" cy="27" r="3" fill="#fff"/>
+          </svg>
+        </div>
+      </div>
+      <div class="fala-loki" style="margin-top:1.5rem;">Eles veem a verdade.</div>
+      <button class="btn" id="btn-fim" style="display:none;">CONTINUAR</button>
+    </div>
+
+    <!-- Cena 16: Portas Finais -->
+    <div class="tela" id="tela-portas-finais">
+      <div class="fala-loki">Escolha seu destino.</div>
+      <div class="btn-row" id="portas-finais-row" style="display:flex; gap:2rem;">
+        <div class="porta-final verde" id="porta-final-verde">
+          <div class="porta">LOKI</div>
+        </div>
+        <div class="porta-final vermelha" id="porta-final-vermelha">
+          <div class="porta">MAGO LOUCO</div>
+        </div>
+      </div>
+      <div class="fala-loki" id="resposta-portas-finais" style="display:none;"></div>
+      <button class="btn" id="btn-reiniciar" style="display:none;">REINICIAR</button>
+    </div>
+
+    <div id="glitch-rgb"></div>
+  </div>
+</div>
+
+<script>
+  const state = { audioCtx: null, drone: null };
+
+  function initAudio() {
+    if (state.audioCtx) return;
+    state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    state.drone = state.audioCtx.createOscillator();
+    state.drone.type = 'sawtooth';
+    state.drone.frequency.value = 40;
+    const droneGain = state.audioCtx.createGain();
+    droneGain.gain.value = 0.03;
+    state.drone.connect(droneGain);
+    droneGain.connect(state.audioCtx.destination);
+    state.drone.start();
+  }
+
+  function tocarSom(tipo, freq = 440, duracao = 0.3, volume = 0.1) {
+    if (!state.audioCtx) return;
+    const osc = state.audioCtx.createOscillator();
+    const gain = state.audioCtx.createGain();
+    osc.type = tipo;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(volume, state.audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, state.audioCtx.currentTime + duracao);
+    osc.connect(gain);
+    gain.connect(state.audioCtx.destination);
+    osc.start();
+    osc.stop(state.audioCtx.currentTime + duracao);
+  }
+
+  function tocarRisoLoki() {
+    for (let i = 0; i < 8; i++) setTimeout(() => tocarSom('square', 300 + i * 80, 0.15, 0.25), i * 150);
+  }
+  function tocarFogo() {
+    const bufferSize = state.audioCtx.sampleRate * 1;
+    const buffer = state.audioCtx.createBuffer(1, bufferSize, state.audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    const source = state.audioCtx.createBufferSource(); source.buffer = buffer;
+    const filter = state.audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 400;
+    const gain = state.audioCtx.createGain(); gain.gain.setValueAtTime(0.1, state.audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.0, state.audioCtx.currentTime + 1);
+    source.connect(filter); filter.connect(gain); gain.connect(state.audioCtx.destination);
+    source.start(); source.stop(state.audioCtx.currentTime + 1);
+  }
+  function tocarSerpente() {
+    const bufferSize = state.audioCtx.sampleRate * 0.5;
+    const buffer = state.audioCtx.createBuffer(1, bufferSize, state.audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    const source = state.audioCtx.createBufferSource(); source.buffer = buffer;
+    const filter = state.audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 3000; filter.Q.value = 5;
+    const gain = state.audioCtx.createGain(); gain.gain.setValueAtTime(0.08, state.audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.0, state.audioCtx.currentTime + 0.5);
+    source.connect(filter); filter.connect(gain); gain.connect(state.audioCtx.destination);
+    source.start(); source.stop(state.audioCtx.currentTime + 0.5);
+  }
+  function tocarVento() {
+    const bufferSize = state.audioCtx.sampleRate * 2;
+    const buffer = state.audioCtx.createBuffer(1, bufferSize, state.audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    const source = state.audioCtx.createBufferSource(); source.buffer = buffer;
+    const filter = state.audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 500; filter.Q.value = 0.5;
+    const gain = state.audioCtx.createGain(); gain.gain.setValueAtTime(0.15, state.audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.0, state.audioCtx.currentTime + 2);
+    source.connect(filter); filter.connect(gain); gain.connect(state.audioCtx.destination);
+    source.start(); source.stop(state.audioCtx.currentTime + 2);
+  }
+  function tocarCoração() {
+    tocarSom('sine', 100, 0.1, 0.3);
+    setTimeout(() => tocarSom('sine', 120, 0.1, 0.3), 200);
+    setTimeout(() => tocarSom('sine', 100, 0.1, 0.3), 500);
+    setTimeout(() => tocarSom('sine', 120, 0.1, 0.3), 700);
+  }
+  function tocarGritoTerror() {
+    const osc = state.audioCtx.createOscillator(); const gain = state.audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(1000, state.audioCtx.currentTime);
+    osc.frequency.linearRampToValueAtTime(1800, state.audioCtx.currentTime + 0.2);
+    osc.frequency.linearRampToValueAtTime(800, state.audioCtx.currentTime + 0.4);
+    gain.gain.setValueAtTime(0.3, state.audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, state.audioCtx.currentTime + 0.6);
+    osc.connect(gain); gain.connect(state.audioCtx.destination);
+    osc.start(); osc.stop(state.audioCtx.currentTime + 0.6);
+  }
+  function tocarMoedas() {
+    for (let i = 0; i < 5; i++) setTimeout(() => tocarSom('triangle', 1200 + i * 100, 0.2, 0.1), i * 100);
+  }
+
+  function criarRunasNordicas() {
+    const container = document.createElement('div');
+    container.id = 'runas-nordicas';
+    container.style.position = 'fixed'; container.style.inset = '0';
+    container.style.pointerEvents = 'none'; container.style.zIndex = '3';
+    const alfabeto = ['ᚠ','ᚢ','ᚦ','ᚨ','ᚱ','ᚲ','ᚷ','ᚹ','ᚺ','ᚾ','ᛁ','ᛃ','ᛇ','ᛈ','ᛉ','ᛊ','ᛏ','ᛒ','ᛖ','ᛗ','ᛚ','ᛜ','ᛞ','ᛟ'];
+    for (let i = 0; i < 50; i++) {
+      const span = document.createElement('span');
+      span.className = 'runa-nordica';
+      span.textContent = alfabeto[Math.floor(Math.random() * alfabeto.length)];
+      span.style.left = Math.random() * 100 + '%';
+      span.style.top = Math.random() * 100 + '%';
+      span.style.fontSize = (Math.random() * 2.5 + 1) + 'rem';
+      span.style.animationDelay = Math.random() * 10 + 's';
+      container.appendChild(span);
+    }
+    document.body.appendChild(container);
+  }
+
+  function criarRunasGirando() {
+    const container = document.getElementById('runas-girando-container');
+    container.innerHTML = '';
+    container.style.position = 'fixed'; container.style.inset = '0';
+    container.style.pointerEvents = 'none'; container.style.zIndex = '2';
+    container.style.animation = 'girarRunas 3s linear infinite';
+    const runas = ['ᚠ','ᚢ','ᚦ','ᚨ','ᚱ','ᚲ','ᚷ','ᚹ','ᚺ','ᚾ','ᛁ','ᛃ','ᛇ','ᛈ','ᛉ','ᛊ','ᛏ','ᛒ','ᛖ','ᛗ','ᛚ','ᛜ','ᛞ','ᛟ'];
+    for (let i = 0; i < 24; i++) {
+      const span = document.createElement('span');
+      span.className = 'runa-nordica';
+      span.textContent = runas[i % runas.length];
+      span.style.position = 'absolute';
+      span.style.left = '50%'; span.style.top = '50%';
+      span.style.transform = `translate(-50%, -50%) rotate(${i * 15}deg) translateY(-42vh)`;
+      span.style.animation = 'none';
+      span.style.opacity = '0.7';
+      container.appendChild(span);
+    }
+  }
+
+  function mostrarTela(id) {
+    document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+    const tela = document.getElementById(id);
+    if (tela) tela.classList.add('ativa');
+  }
+
+  function criarCloneJogador() {
+    const container = document.getElementById('clone-jogador-container');
+    container.innerHTML = '';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 100 100');
+    svg.style.width = '100%'; svg.style.height = '100%';
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', '50'); circle.setAttribute('cy', '50'); circle.setAttribute('r', '40');
+    circle.setAttribute('fill', '#ccc'); circle.setAttribute('stroke', '#00ff66'); circle.setAttribute('stroke-width', '2');
+    svg.appendChild(circle);
+    const olho1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    olho1.setAttribute('cx', '40'); olho1.setAttribute('cy', '50'); olho1.setAttribute('r', '5'); olho1.setAttribute('fill', '#000');
+    svg.appendChild(olho1);
+    const olho2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    olho2.setAttribute('cx', '60'); olho2.setAttribute('cy', '50'); olho2.setAttribute('r', '5'); olho2.setAttribute('fill', '#000');
+    svg.appendChild(olho2);
+    const boca = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    boca.setAttribute('d', 'M40,70 Q50,80 60,70');
+    boca.setAttribute('stroke', '#000'); boca.setAttribute('fill', 'none');
+    svg.appendChild(boca);
+    container.appendChild(svg);
+  }
+
+  // Palavras aleatórias
+  function criarPalavraAleatoria() {
+    const palavras = ['MAGO LOUCO', 'LOKI', 'ILUSÃO', 'CAOS', 'MENTIRA', 'VERMELHO', 'VERDE', 'OLATY'];
+    setInterval(() => {
+      if (Math.random() < 0.4) return;
+      const palavra = palavras[Math.floor(Math.random() * palavras.length)];
+      const el = document.createElement('div');
+      el.className = 'palavra-aleatoria';
+      el.textContent = palavra;
+      el.style.top = (Math.random() * 70 + 10) + '%';
+      el.style.left = (Math.random() * 70 + 10) + '%';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 4000);
+    }, 4000);
+  }
+
+  function iniciar() {
+    criarRunasNordicas();
+    criarRunasGirando();
+    criarPalavraAleatoria();
+
+    document.getElementById('btn-iniciar').addEventListener('click', () => {
+      initAudio(); tocarVento(); mostrarTela('tela-aparicao');
+      setTimeout(() => { document.getElementById('fala-aparicao-2').style.display='block'; tocarSom('triangle',500,0.5); }, 1500);
+      setTimeout(() => { document.getElementById('fala-aparicao-3').style.display='block'; tocarRisoLoki(); }, 3000);
+      setTimeout(() => { document.getElementById('fala-aparicao-4').style.display='block'; tocarSom('square',300,0.4); }, 4500);
+      setTimeout(() => { document.getElementById('btn-avancar-aparicao').style.display='block'; }, 6000);
+    });
+
+    document.getElementById('btn-avancar-aparicao').addEventListener('click', () => mostrarTela('tela-portas'));
+
+    // Portas
+    document.getElementById('porta-verde').addEventListener('click', () => {
+      document.getElementById('portas-row').style.display='none';
+      document.getElementById('resposta-porta').style.display='block';
+      tocarRisoLoki(); document.getElementById('btn-continuar-portas').style.display='block';
+    });
+    document.getElementById('porta-vermelha').addEventListener('click', () => {
+      document.getElementById('portas-row').style.display='none';
+      document.getElementById('resposta-porta').style.display='block';
+      tocarRisoLoki(); document.getElementById('btn-continuar-portas').style.display='block';
+    });
+    document.getElementById('btn-continuar-portas').addEventListener('click', () => {
+      mostrarTela('tela-falso-fim');
+      setTimeout(() => { document.getElementById('fala-falso-fim').style.display='block'; tocarRisoLoki(); document.getElementById('btn-continuar-falso-fim').style.display='block'; }, 2000);
+    });
+    document.getElementById('btn-continuar-falso-fim').addEventListener('click', () => mostrarTela('tela-moeda'));
+
+    // Moeda
+    document.getElementById('moeda-esquerda').addEventListener('click', () => {
+      document.getElementById('moedas-row').style.display='none';
+      document.getElementById('resposta-moeda').style.display='block';
+      tocarMoedas(); document.getElementById('btn-continuar-moeda').style.display='block';
+    });
+    document.getElementById('moeda-direita').addEventListener('click', () => {
+      document.getElementById('moedas-row').style.display='none';
+      document.getElementById('resposta-moeda').style.display='block';
+      tocarMoedas(); document.getElementById('btn-continuar-moeda').style.display='block';
+    });
+    document.getElementById('btn-continuar-moeda').addEventListener('click', () => {
+      mostrarTela('tela-progresso');
+      let progresso = 0;
+      const intervalo = setInterval(() => {
+        progresso += 5;
+        document.getElementById('barra-preench').style.width = progresso + '%';
+        tocarSom('sine', 1000 + progresso * 5, 0.05, 0.05);
+        if (progresso >= 100) {
+          clearInterval(intervalo);
+          setTimeout(() => {
+            document.getElementById('barra-preench').style.width='0%';
+            document.getElementById('resposta-progresso').style.display='block';
+            tocarRisoLoki(); document.getElementById('btn-continuar-progresso').style.display='block';
+          }, 500);
+        }
+      }, 100);
+    });
+    document.getElementById('btn-continuar-progresso').addEventListener('click', () => mostrarTela('tela-labirinto'));
+
+    // Labirinto
+    document.getElementById('labirinto-esquerda').addEventListener('click', () => {
+      document.getElementById('labirinto-botoes').style.display='none';
+      document.getElementById('resposta-labirinto').style.display='block';
+      tocarSom('triangle',400,0.3); document.getElementById('btn-continuar-labirinto').style.display='block';
+    });
+    document.getElementById('labirinto-direita').addEventListener('click', () => {
+      document.getElementById('labirinto-botoes').style.display='none';
+      document.getElementById('resposta-labirinto').style.display='block';
+      tocarSom('triangle',400,0.3); document.getElementById('btn-continuar-labirinto').style.display='block';
+    });
+    document.getElementById('btn-continuar-labirinto').addEventListener('click', () => {
+      mostrarTela('tela-eco');
+      const ecoContainer = document.getElementById('eco-mensagens');
+      ecoContainer.innerHTML = '';
+      const mensagens = ['Você acha que está no controle?', 'Nada é o que parece.', 'Mago louco...'];
+      mensagens.forEach((msg, i) => {
+        setTimeout(() => {
+          const div = document.createElement('div');
+          div.className = 'fala-loki'; div.textContent = msg; div.style.opacity = 0.5;
+          ecoContainer.appendChild(div);
+          tocarSom('sine', 500 - i * 50, 0.3, 0.08);
+        }, i * 900);
+      });
+      setTimeout(() => { document.getElementById('btn-continuar-eco').style.display='block'; }, mensagens.length * 900 + 500);
+    });
+    document.getElementById('btn-continuar-eco').addEventListener('click', () => mostrarTela('tela-inventario'));
+
+    // Inventário
+    document.getElementById('item-flor').addEventListener('click', () => {
+      document.getElementById('inventario-itens').style.display='none';
+      document.getElementById('resposta-inventario').textContent = 'A pior escolha do mundo ele ter.';
+      document.getElementById('resposta-inventario').style.display='block';
+      tocarRisoLoki(); document.getElementById('btn-continuar-inventario').style.display='block';
+    });
+    document.getElementById('item-moeda').addEventListener('click', () => {
+      document.getElementById('inventario-itens').style.display='none';
+      document.getElementById('resposta-inventario').textContent = 'Ele nunca tem. Até porque ele é um ladrão, nunca terá dinheiro.';
+      document.getElementById('resposta-inventario').style.display='block';
+      tocarMoedas(); document.getElementById('btn-continuar-inventario').style.display='block';
+    });
+    document.getElementById('item-vermelho').addEventListener('click', () => {
+      document.getElementById('inventario-itens').style.display='none';
+      document.getElementById('resposta-inventario').textContent = 'Ele tem, mas é pouco. Não devia ter. Ele não merece vermelho. Para agora, para sempre vai ser verde.';
+      document.getElementById('resposta-inventario').style.display='block';
+      tocarGritoTerror(); document.getElementById('btn-continuar-inventario').style.display='block';
+    });
+    document.getElementById('btn-continuar-inventario').addEventListener('click', () => mostrarTela('tela-pergunta-sem-resposta'));
+
+    // Pergunta
+    document.getElementById('resp-pensando-1').addEventListener('click', () => {
+      document.getElementById('pergunta-sem-resposta-botoes').style.display='none';
+      document.getElementById('resposta-pensando').style.display='block';
+      tocarRisoLoki(); document.getElementById('btn-continuar-pensando').style.display='block';
+    });
+    document.getElementById('resp-pensando-2').addEventListener('click', () => {
+      document.getElementById('pergunta-sem-resposta-botoes').style.display='none';
+      document.getElementById('resposta-pensando').style.display='block';
+      tocarRisoLoki(); document.getElementById('btn-continuar-pensando').style.display='block';
+    });
+    document.getElementById('resp-pensando-3').addEventListener('click', () => {
+      document.getElementById('pergunta-sem-resposta-botoes').style.display='none';
+      document.getElementById('resposta-pensando').style.display='block';
+      tocarRisoLoki(); document.getElementById('btn-continuar-pensando').style.display='block';
+    });
+    document.getElementById('btn-continuar-pensando').addEventListener('click', () => {
+      mostrarTela('tela-clone-jogador');
+      criarCloneJogador();
+      setTimeout(() => { document.getElementById('fala-clone-jogador-2').style.display='block'; tocarCoração(); document.getElementById('btn-continuar-clone-jogador').style.display='block'; }, 2000);
+    });
+    document.getElementById('btn-continuar-clone-jogador').addEventListener('click', () => {
+      mostrarTela('tela-memoria');
+      setTimeout(() => { document.getElementById('resposta-memoria').style.display='block'; tocarCoração(); document.getElementById('btn-continuar-memoria').style.display='block'; }, 2000);
+    });
+    document.getElementById('btn-continuar-memoria').addEventListener('click', () => {
+      mostrarTela('tela-metamorfose');
+      const forma = document.getElementById('forma-mutante');
+      const formas = [
+        'M100,50 Q150,100 100,150 Q50,100 100,50',
+        'M50,150 L100,50 L150,150',
+        'M100,40 L150,160 L100,120 L50,160 Z',
+        'M40,100 Q100,30 160,100 Q100,170 40,100',
+        'M100,20 L180,100 L100,180 L20,100 Z'
+      ];
+      let contador = 0;
+      let intervalo = 800;
+      const mudarForma = () => {
+        forma.setAttribute('d', formas[contador % formas.length]);
+        tocarSom('square', 500 + contador * 50, 0.2, 0.2);
+        contador++;
+        if (contador > 15) {
+          document.getElementById('fala-metamorfose-2').style.display='block';
+          document.getElementById('btn-continuar-metamorfose').style.display='block';
+          return;
+        }
+        intervalo = Math.max(100, 800 - contador * 50);
+        setTimeout(mudarForma, intervalo);
+      };
+      setTimeout(mudarForma, 500);
+    });
+    document.getElementById('btn-continuar-metamorfose').addEventListener('click', () => {
+      mostrarTela('tela-caos');
+      tocarFogo(); tocarSerpente();
+      setTimeout(() => { document.getElementById('fala-caos-1').style.display='block'; tocarRisoLoki(); }, 1500);
+      setTimeout(() => { document.getElementById('fala-caos-2').style.display='block'; tocarFogo(); }, 3000);
+      setTimeout(() => { document.getElementById('btn-ver-lua').style.display='block'; }, 4500);
+    });
+    document.getElementById('btn-ver-lua').addEventListener('click', () => {
+      mostrarTela('tela-lua-vermelha');
+      iniciarLuaVermelha();
+    });
+
+    function iniciarLuaVermelha() {
+      const luaContainer = document.getElementById('lua-vermelha-container');
+      luaContainer.style.display = 'flex';
+      tocarGritoTerror();
+      const textos = [
+        { texto: 'Vermelho tem tudo a cara.', cor: 'fala-vermelha' },
+        { texto: 'É fraco. O vermelho vai perder.', cor: 'fala-vermelha' },
+        { texto: 'Ele não é vermelho suficiente.', cor: 'fala-vermelha' },
+        { texto: 'Vermelho, contra a percepção.', cor: 'fala-vermelha' },
+        { texto: 'Verde, contra a ilusão. Somos opostos.', cor: 'fala-loki' },
+        { texto: 'Você merece morrer por isso.', cor: 'fala-vermelha' },
+        { texto: 'Eu mereço morrer.', cor: 'fala-loki' },
+        { texto: 'Eu quero morrer, mas eu não morro, eu nunca morro.', cor: 'fala-vermelha' },
+        { texto: 'Então, vou te matar para me matar por dentro.', cor: 'fala-loki' },
+        { texto: 'Ilusão contra a percepção.', cor: 'fala-vermelha' }
+      ];
+      const container = document.getElementById('textos-lua');
+      container.innerHTML = '';
+      textos.forEach((item, i) => {
+        setTimeout(() => {
+          container.innerHTML = '';
+          const div = document.createElement('div');
+          div.className = item.cor;
+          div.textContent = item.texto;
+          div.style.animation = 'pulsarTexto 0.5s ease-in-out infinite alternate';
+          div.style.fontSize = '1.5rem';
+          div.style.textShadow = '0 0 50px currentColor';
+          container.appendChild(div);
+          if (i < 4) tocarGritoTerror();
+          else if (i === 5) tocarSom('sawtooth', 800, 0.5, 0.3);
+          else tocarSom('triangle', 600 + i * 50, 0.5, 0.3);
+          const lua = document.querySelector('.lua-vermelha');
+          lua.style.boxShadow = '0 0 150px rgba(255,0,0,1), 0 0 300px rgba(255,0,0,0.9)';
+          if (item.cor === 'fala-loki') {
+            lua.style.background = 'radial-gradient(circle at 40% 35%, #00ff66, #006633 60%, #003300 90%)';
+            lua.style.boxShadow = '0 0 100px rgba(0,255,102,1), 0 0 200px rgba(0,255,102,0.9)';
+            setTimeout(() => {
+              lua.style.background = 'radial-gradient(circle at 40% 35%, #ff6060, #cc0000 60%, #660000 90%)';
+              lua.style.boxShadow = '0 0 60px rgba(255,0,0,1), 0 0 120px rgba(255,0,0,0.8)';
+            }, 600);
+          } else {
+            setTimeout(() => {
+              lua.style.boxShadow = '0 0 60px rgba(255,0,0,1), 0 0 120px rgba(255,0,0,0.8)';
+            }, 800);
+          }
+          if (i === textos.length - 1) {
+            document.getElementById('olho-na-lua').classList.add('mostrar');
+            setTimeout(() => {
+              mostrarTela('tela-olhos');
+              iniciarOlhos();
+            }, 2500);
+          }
+        }, 2000 + i * 2000); // Mais devagar (2s cada)
+      });
+    }
+
+    function iniciarOlhos() {
+      const olhos = document.querySelectorAll('.olho-grande');
+      olhos.forEach(olho => olho.style.animation = 'olhoAbrirFechar 4s ease-in-out infinite');
+      tocarGritoTerror();
+      setTimeout(() => tocarSom('sine', 800, 0.5, 0.2), 1000);
+      setTimeout(() => { document.getElementById('btn-fim').style.display='block'; }, 5000);
+    }
+
+    document.getElementById('btn-fim').addEventListener('click', () => {
+      mostrarTela('tela-portas-finais');
+    });
+
+    // Portas finais
+    document.getElementById('porta-final-verde').addEventListener('click', () => {
+      document.getElementById('portas-finais-row').style.display='none';
+      document.getElementById('resposta-portas-finais').textContent = 'Eu sabia, você é meu.';
+      document.getElementById('resposta-portas-finais').style.display='block';
+      tocarRisoLoki();
+      document.getElementById('btn-reiniciar').style.display='block';
+    });
+    document.getElementById('porta-final-vermelha').addEventListener('click', () => {
+      document.getElementById('portas-finais-row').style.display='none';
+      document.getElementById('resposta-portas-finais').textContent = 'Você ainda será meu, seu vermelho vai perder para o meu verde.';
+      document.getElementById('resposta-portas-finais').style.display='block';
+      tocarRisoLoki();
+      document.getElementById('btn-reiniciar').style.display='block';
+    });
+
+    document.getElementById('btn-reiniciar').addEventListener('click', () => location.reload());
+
+    if (navigator.userAgent.match(/iPhone|iPad|Android/i)) {
+      document.getElementById('frame').style.height = window.innerHeight + 'px';
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar);
+  else iniciar();
+</script>
+</body>
+</html>
