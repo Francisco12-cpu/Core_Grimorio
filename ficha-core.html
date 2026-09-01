@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ficha CORE</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#0c0a16;
+  --void-2:#12101f;
+  --panel:#171429;
+  --panel-2:#1d1934;
+  --text:#e9e4f7;
+  --text-dim:#9b91b8;
+  --danger:#ff5d78;
+  --ok:#5be3a0;
+  --ember:#ff8a5c;
+  --sans:'Rajdhani',sans-serif;
+  --serif:'Cinzel',serif;
+  --accent:#9d7bff;
+  --accent-bright:#c3aeff;
+  --accent-dark:#6f4fe0;
+  --line:rgba(157,123,255,0.28);
+  --line-soft:rgba(157,123,255,0.14);
+  --accent-wash:rgba(157,123,255,0.16);
+  --radius:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:
+    radial-gradient(circle at 18% 0%, rgba(157,123,255,0.10), transparent 45%),
+    radial-gradient(circle at 100% 30%, rgba(255,138,92,0.06), transparent 40%),
+    var(--void);
+  color:var(--text);
+  font-family:var(--sans);
+  min-height:100vh;
+  padding:0.6rem 0.5rem 2rem;
+  font-size:0.95rem;
+}
+#app{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:0.6rem;}
+
+/* ---------- painel base ---------- */
+.painel{
+  position:relative;
+  background:linear-gradient(180deg, var(--panel), var(--panel-2));
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:0.75rem 0.8rem 0.85rem;
+}
+.painel::before,.painel::after{
+  content:"";
+  position:absolute;
+  width:9px;height:9px;
+  border:1px solid var(--accent);
+  opacity:0.65;
+}
+.painel::before{top:-1px;left:-1px;border-right:none;border-bottom:none;}
+.painel::after{top:-1px;right:-1px;border-left:none;border-bottom:none;}
+
+#app.tema-hud .painel,
+#app.tema-sombrio .painel{ }
+#app.tema-hud .painel::before,#app.tema-hud .painel::after,
+#app.tema-sombrio .painel::before,#app.tema-sombrio .painel::after{display:none;}
+#app.tema-hud .painel{border-style:dashed;}
+#app.tema-sombrio .painel{box-shadow:none;}
+#app.tema-cyberpunk .titulo-secao,#app.tema-hud .titulo-secao{font-family:var(--sans);}
+#app.tema-hud .titulo-secao,#app.tema-hud label{letter-spacing:0.1em;}
+
+.titulo-secao{
+  font-family:var(--serif);
+  font-weight:600;
+  letter-spacing:0.04em;
+  font-size:0.72rem;
+  color:var(--accent-bright);
+  text-transform:uppercase;
+  margin-bottom:0.55rem;
+  display:flex;align-items:center;gap:0.4rem;
+}
+.titulo-secao::after{content:"";flex:1;height:1px;background:linear-gradient(90deg, var(--line), transparent);}
+
+/* ---------- topo ---------- */
+.topo{
+  display:flex;align-items:center;justify-content:space-between;gap:0.4rem;
+  padding:0.55rem 0.7rem;
+}
+.topo h1{
+  font-family:var(--serif);
+  font-size:1.15rem;
+  font-weight:700;
+  color:var(--accent-bright);
+  letter-spacing:0.05em;
+}
+.topo .acoes{display:flex;gap:0.35rem;}
+button{cursor:pointer;font-family:var(--sans);}
+.btn{
+  background:linear-gradient(135deg, var(--accent), var(--accent-dark));
+  border:none;color:#fff;
+  padding:0.4rem 0.65rem;
+  border-radius:6px;
+  font-weight:700;
+  font-size:0.72rem;
+  letter-spacing:0.02em;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.06) inset;
+}
+.btn.ghost{
+  background:transparent;
+  border:1px solid var(--line);
+  color:var(--accent-bright);
+}
+.btn.ghost.ativo{background:var(--accent-wash);border-color:var(--accent);}
+.btn.ember{background:linear-gradient(135deg, var(--ember), #c65a2e);}
+.btn:active{transform:translateY(1px);}
+.icone-botao{width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;}
+
+/* ---------- form basics ---------- */
+label{
+  display:block;font-size:0.62rem;
+  text-transform:uppercase;letter-spacing:0.05em;
+  color:var(--text-dim);margin-bottom:0.15rem;font-weight:600;
+}
+input,select,textarea{
+  width:100%;
+  background:var(--void-2);
+  border:1px solid var(--line-soft);
+  color:var(--text);
+  padding:0.4rem 0.5rem;
+  border-radius:6px;
+  font-family:var(--sans);
+  font-size:0.88rem;
+}
+select option{background:var(--void-2);color:var(--text);}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-wash);}
+input[type=checkbox]{width:auto;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0.45rem;}
+.campo{margin-bottom:0.45rem;}
+
+/* ---------- retrato ---------- */
+.retrato-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:0.55rem;}
+.retrato{
+  width:76px;height:76px;border-radius:50%;
+  background-size:cover;background-position:center;
+  border:2px solid var(--accent);
+  box-shadow:0 0 16px var(--accent);
+  margin-bottom:0.35rem;
+}
+#app.sem-brilho .retrato{box-shadow:none;}
+.retrato-vazio{
+  width:76px;height:76px;border-radius:50%;
+  border:1px dashed var(--line);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-dim);font-size:0.58rem;text-transform:uppercase;
+  margin-bottom:0.35rem;
+}
+input[type=file]{font-size:0.62rem;padding:0.2rem;}
+
+/* ---------- select customizado (raça) ---------- */
+.select-custom{position:relative;}
+.select-custom-botao{
+  width:100%;display:flex;justify-content:space-between;align-items:center;
+  background:var(--void-2);border:1px solid var(--line-soft);color:var(--text);
+  padding:0.4rem 0.5rem;border-radius:6px;font-family:var(--sans);font-size:0.88rem;
+}
+.select-custom-botao svg{color:var(--accent-bright);flex-shrink:0;margin-left:0.4rem;}
+.select-backdrop{position:fixed;inset:0;z-index:15;}
+.select-custom-lista{
+  position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:20;
+  max-height:230px;overflow-y:auto;
+  background:var(--void-2);border:1px solid var(--accent);border-radius:8px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.5);
+}
+.select-custom-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:0.45rem 0.6rem;font-size:0.85rem;color:var(--text);
+  border-bottom:1px solid var(--line-soft);
+}
+.select-custom-item:last-child{border-bottom:none;}
+.select-custom-item.selecionada{background:var(--accent-wash);}
+.select-custom-item.restrita{color:var(--text-dim);opacity:0.5;}
+.select-custom-item:not(.restrita):active{background:var(--accent-wash);}
+.icone-cadeado{color:var(--text-dim);flex-shrink:0;margin-left:0.4rem;}
+
+/* ---------- visualização ---------- */
+.nome-vis{font-family:var(--serif);font-size:1.25rem;font-weight:700;color:var(--accent-bright);text-align:center;}
+.apelido-vis{text-align:center;font-style:italic;color:var(--text-dim);font-size:0.85rem;margin-top:0.1rem;}
+.titulo-vis{text-align:center;font-family:var(--serif);color:var(--ember);font-size:0.78rem;margin-top:0.15rem;letter-spacing:0.03em;}
+.raca-vis{text-align:center;font-size:0.8rem;color:var(--text-dim);margin-top:0.25rem;}
+.linha-vis{display:flex;justify-content:space-between;font-size:0.82rem;padding:0.15rem 0;border-bottom:1px dotted var(--line-soft);}
+.linha-vis:last-child{border-bottom:none;}
+
+/* ---------- vida ---------- */
+.vida-flex{display:flex;align-items:center;gap:0.9rem;flex-wrap:wrap;}
+.vida-num{font-family:var(--serif);font-size:1.05rem;fill:var(--text);}
+
+/* ---------- marcadores ---------- */
+.marcadores-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;margin-top:0.5rem;}
+.marcador{background:var(--void-2);border:1px solid var(--line-soft);border-radius:8px;padding:0.4rem 0.3rem;text-align:center;}
+.marcador .rotulo{font-size:0.6rem;text-transform:uppercase;letter-spacing:0.03em;color:var(--text-dim);margin-bottom:0.25rem;}
+.stepper{display:flex;align-items:center;justify-content:center;gap:0.35rem;}
+.stepper button{
+  width:22px;height:22px;border-radius:50%;
+  border:1px solid var(--accent);background:var(--accent-wash);
+  color:var(--accent-bright);font-weight:700;font-size:0.85rem;
+  display:flex;align-items:center;justify-content:center;line-height:1;padding:0;
+}
+.stepper span{min-width:18px;text-align:center;font-weight:700;font-family:var(--serif);}
+
+/* ---------- atributos ---------- */
+.atributos-toggle{display:flex;gap:0.3rem;margin-bottom:0.5rem;}
+.atributos-toggle button{
+  flex:1;padding:0.3rem;border-radius:6px;border:1px solid var(--line);
+  background:transparent;color:var(--text-dim);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;
+}
+.atributos-toggle button.ativo{background:var(--accent-wash);color:var(--accent-bright);border-color:var(--accent);}
+.pontos-restantes{font-size:0.72rem;color:var(--text-dim);margin-bottom:0.4rem;}
+.pontos-restantes b{color:var(--accent-bright);}
+.atributo-linha{display:grid;grid-template-columns:1fr auto 34px auto;align-items:center;gap:0.4rem;padding:0.3rem 0;border-bottom:1px dotted var(--line-soft);}
+.atributo-linha:last-child{border-bottom:none;}
+.atributo-linha .nome{font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.02em;}
+.atributo-linha .bonus{font-size:0.68rem;color:var(--ember);text-align:center;min-width:24px;}
+.atributo-linha .total{font-family:var(--serif);font-weight:700;color:var(--accent-bright);text-align:right;min-width:22px;}
+.hex-wrap{display:flex;justify-content:center;padding:0.4rem 0;}
+.hex-wrap svg{width:100%;max-width:260px;height:auto;overflow:visible;}
+
+/* ---------- listas ---------- */
+.item-lista{background:var(--void-2);border:1px solid var(--line-soft);border-radius:8px;padding:0.5rem;margin-bottom:0.4rem;}
+.item-topo{display:flex;justify-content:space-between;align-items:center;gap:0.4rem;margin-bottom:0.3rem;}
+.item-nome{font-weight:600;font-size:0.85rem;flex:1;}
+.nivel-dots{display:flex;gap:0.25rem;}
+.nivel-dots span{
+  width:16px;height:16px;border-radius:50%;border:1px solid var(--accent);
+  display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:var(--text-dim);
+}
+.nivel-dots span.on{background:var(--accent);color:#fff;}
+.remover{background:none;border:none;color:var(--danger);font-size:0.85rem;font-weight:700;padding:0 0.2rem;}
+.pericia-fixa-linha{display:flex;align-items:center;justify-content:space-between;padding:0.32rem 0;border-bottom:1px dotted var(--line-soft);gap:0.4rem;}
+.pericia-fixa-linha:last-child{border-bottom:none;}
+.pericia-fixa-linha .nome{font-size:0.82rem;flex:1;}
+.vantagem-linha{display:flex;align-items:center;gap:0.5rem;padding:0.32rem 0;border-bottom:1px dotted var(--line-soft);}
+.vantagem-linha:last-child{border-bottom:none;}
+.vantagem-linha .nome{flex:1;font-size:0.82rem;font-weight:600;}
+.vantagem-max{width:18px;height:18px;}
+
+/* ---------- condições ---------- */
+.tags{display:flex;flex-wrap:wrap;gap:0.3rem;align-items:center;}
+.tag{
+  border:1px solid var(--accent);background:var(--accent-wash);
+  padding:0.15rem 0.55rem;border-radius:12px;font-size:0.7rem;cursor:pointer;
+}
+.tag.off{opacity:0.45;background:transparent;}
+.tag-add{
+  width:22px;height:22px;border-radius:50%;border:1px dashed var(--accent);
+  background:none;color:var(--accent-bright);font-size:0.85rem;
+}
+
+.botao-secundario{
+  background:transparent;border:1px solid var(--accent);color:var(--accent-bright);
+  padding:0.35rem 0.6rem;border-radius:6px;font-weight:700;font-size:0.75rem;width:100%;margin-top:0.3rem;
+}
+
+textarea{resize:vertical;min-height:2.4rem;}
+.subrotulo{font-size:0.6rem;color:var(--text-dim);margin-top:0.15rem;}
+
+/* ---------- aparência ---------- */
+.tema-opcoes{display:flex;flex-wrap:wrap;gap:0.35rem;}
+.tema-opcoes .btn{flex:1;min-width:130px;}
+.cor-opcoes{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.25rem;align-items:center;}
+.cor-swatch{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;position:relative;overflow:hidden;}
+.cor-swatch.ativa{border-color:#fff;}
+.cor-custom{display:inline-block;background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);}
+.cor-custom input[type=color]{opacity:0;width:100%;height:100%;position:absolute;top:0;left:0;cursor:pointer;border:none;padding:0;}
+.check-linha{display:flex;align-items:center;gap:0.4rem;margin-top:0.55rem;font-size:0.75rem;color:var(--text-dim);text-transform:none;letter-spacing:0;}
+</style>
+</head>
+<body>
+<div id="app" :class="['tema-'+tema, brilhoAtivo ? '' : 'sem-brilho']" :style="estiloRaiz">
+
+  <header class="painel topo">
+    <h1>CORE</h1>
+    <div class="acoes">
+      <button class="btn ghost icone-botao" title="Aparência" @click="mostrarAparencia=!mostrarAparencia">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+          <circle cx="12" cy="12" r="9"/>
+          <circle cx="8.3" cy="9.5" r="1.2" fill="currentColor" stroke="none"/>
+          <circle cx="12" cy="6.8" r="1.2" fill="currentColor" stroke="none"/>
+          <circle cx="15.7" cy="9.5" r="1.2" fill="currentColor" stroke="none"/>
+          <circle cx="14.2" cy="14.5" r="1.2" fill="currentColor" stroke="none"/>
+        </svg>
+      </button>
+      <button class="btn ghost" @click="modoVisualizacao=!modoVisualizacao">{{ modoVisualizacao ? 'Editar' : 'Ver' }}</button>
+      <button class="btn ember" @click="exportarImagem">Imagem</button>
+    </div>
+  </header>
+
+  <section class="painel" v-if="mostrarAparencia">
+    <div class="titulo-secao">Aparência</div>
+    <label>Modo</label>
+    <div class="tema-opcoes">
+      <button v-for="t in temasDisponiveis" :key="t.chave" class="btn ghost" :class="{ativo:tema===t.chave}" @click="tema=t.chave">{{ t.label }}</button>
+    </div>
+    <label style="margin-top:0.55rem;">Cor principal</label>
+    <div class="cor-opcoes">
+      <button v-for="c in coresPreset" :key="c" class="cor-swatch" :style="{background:c}" :class="{ativa:corPrincipal===c}" @click="corPrincipal=c" :title="c"></button>
+      <label class="cor-swatch cor-custom" :style="corPrincipal && !coresPreset.includes(corPrincipal) ? {background:corPrincipal} : {}" title="Cor personalizada">
+        <input type="color" v-model="corPrincipal">
+      </label>
+    </div>
+    <div class="check-linha"><input type="checkbox" v-model="brilhoAtivo" style="width:auto;"> Efeito brilhante (retrato, hexágono, botões)</div>
+  </section>
+
+  <div id="captura">
+
+  <!-- IDENTIDADE -->
+  <section class="painel">
+    <div class="titulo-secao">Identidade</div>
+    <div class="retrato-wrap">
+      <div v-if="p.identidade.retrato" class="retrato" :style="{backgroundImage:'url('+p.identidade.retrato+')'}"></div>
+      <div v-else class="retrato-vazio">sem retrato</div>
+      <input v-if="!modoVisualizacao" type="file" accept="image/*" @change="uploadRetrato">
+    </div>
+
+    <template v-if="!modoVisualizacao">
+      <div class="grid2">
+        <div class="campo"><label>Nome</label><input v-model="p.identidade.nome"></div>
+        <div class="campo"><label>Apelido</label><input v-model="p.identidade.apelido"></div>
+        <div class="campo"><label>Idade</label><input type="number" v-model.number="p.identidade.idade"></div>
+        <div class="campo"><label>Título atual</label><input v-model="p.identidade.tituloAtual"></div>
+        <div class="campo" style="grid-column:1/-1;">
+          <label>Raça principal</label>
+          <div class="select-custom">
+            <button type="button" class="select-custom-botao" @click="seletorRacaAberto=!seletorRacaAberto">
+              <span>{{ p.identidade.racaPrincipal || 'Selecione...' }}</span>
+              <svg width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>
+            </button>
+            <div v-if="seletorRacaAberto" class="select-backdrop" @click="seletorRacaAberto=false"></div>
+            <div v-if="seletorRacaAberto" class="select-custom-lista">
+              <div v-for="r in racas" :key="r.nome" class="select-custom-item"
+                   :class="{restrita:r.restrita, selecionada:r.nome===p.identidade.racaPrincipal}"
+                   @click="selecionarRaca(r)">
+                <span>{{ r.nome }}</span>
+                <svg v-if="r.restrita" class="icone-cadeado" width="11" height="11" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1a5 5 0 00-5 5v3H6a2 2 0 00-2 2v9a2 2 0 002 2h12a2 2 0 002-2v-9a2 2 0 00-2-2h-1V6a5 5 0 00-5-5zm-3 8V6a3 3 0 016 0v3H9z"/></svg>
+              </div>
+            </div>
+          </div>
+          <div class="subrotulo">cadeado = restrita, só entra por ascendência</div>
+        </div>
+        <div class="campo"><label>Raça secundária / linhagem</label><input v-model="p.identidade.racaSecundaria" placeholder="ex: sangue élfico"></div>
+        <div class="campo"><label>Dinheiro</label><input type="number" v-model.number="p.identidade.dinheiro" min="0"></div>
+        <div class="campo" style="align-self:end;"><label><input type="checkbox" v-model="p.identidade.hibrido"> Híbrido</label></div>
+        <div class="campo"><label>Ordem</label>
+          <select v-model="p.identidade.alinhamentoOrdem"><option>Ordeiro</option><option>Neutro</option><option>Caótico</option></select>
+        </div>
+        <div class="campo"><label>Moral</label>
+          <select v-model="p.identidade.alinhamentoMoral"><option>Bom</option><option>Neutro</option><option>Mau</option></select>
+        </div>
+      </div>
+    </template>
+    <template v-else>
+      <div class="nome-vis">{{ p.identidade.nome || 'Sem nome' }}</div>
+      <div v-if="p.identidade.apelido" class="apelido-vis">"{{ p.identidade.apelido }}"</div>
+      <div v-if="p.identidade.tituloAtual" class="titulo-vis">{{ p.identidade.tituloAtual }}</div>
+      <div class="raca-vis">
+        <span v-if="p.identidade.idade">{{ p.identidade.idade }} anos · </span>{{ p.identidade.racaPrincipal || '—' }}
+        <span v-if="p.identidade.racaSecundaria"> / {{ p.identidade.racaSecundaria }}</span>
+      </div>
+      <div style="margin-top:0.5rem;">
+        <div class="linha-vis"><span>Dinheiro</span><span>{{ p.identidade.dinheiro || 0 }}</span></div>
+        <div class="linha-vis"><span>Alinhamento</span><span>{{ p.identidade.alinhamentoOrdem }} / {{ p.identidade.alinhamentoMoral }}</span></div>
+      </div>
+    </template>
+  </section>
+
+  <!-- VIDA E MARCADORES -->
+  <section class="painel">
+    <div class="titulo-secao">Estado</div>
+    <div class="vida-flex">
+      <svg width="76" height="76" viewBox="0 0 76 76">
+        <circle cx="38" cy="38" r="31" fill="none" stroke="#241f3d" stroke-width="6"/>
+        <circle cx="38" cy="38" r="31" fill="none" :stroke="'url(#gradVida)'" stroke-width="6"
+                stroke-linecap="round" :stroke-dasharray="circunferencia" :stroke-dashoffset="offsetVida"
+                transform="rotate(-90 38 38)"/>
+        <defs><linearGradient id="gradVida" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" :stop-color="corPrincipal"/><stop offset="100%" stop-color="#ff8a5c"/>
+        </linearGradient></defs>
+        <text x="50%" y="53%" text-anchor="middle" class="vida-num">{{ p.estado.vidaAtual }}</text>
+      </svg>
+      <div style="flex:1;min-width:150px;">
+        <div style="font-size:0.85rem;margin-bottom:0.3rem;"><b style="color:var(--accent-bright)">Vida</b> {{ p.estado.vidaAtual }} / {{ vidaMaxima }}</div>
+        <template v-if="!modoVisualizacao">
+          <div class="campo"><label>Vida atual</label><input type="number" v-model.number="p.estado.vidaAtual" min="0" :max="vidaMaxima"></div>
+          <div class="subrotulo">Máxima = vida base da raça ({{ vidaBaseRaca }}) + Resistência×6</div>
+        </template>
+      </div>
+    </div>
+
+    <div class="marcadores-grid">
+      <div class="marcador" v-for="m in marcadoresConfig" :key="m.chave">
+        <div class="rotulo">{{ m.rotulo }}</div>
+        <div class="stepper">
+          <button @click="ajustarMarcador(m.chave,-1)">−</button>
+          <span>{{ p.marcadores[m.chave] }}</span>
+          <button @click="ajustarMarcador(m.chave,1)">+</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ATRIBUTOS -->
+  <section class="painel">
+    <div class="titulo-secao">Atributos</div>
+    <template v-if="!modoVisualizacao">
+      <div class="pontos-restantes">Pontos livres: <b>{{ pontosRestantes }}</b> / 30 (mín. 1, máx. 10 por atributo)</div>
+    </template>
+
+    <div class="atributos-toggle">
+      <button :class="{ativo:visaoAtributos==='hexagono'}" @click="visaoAtributos='hexagono'">Hexágono</button>
+      <button :class="{ativo:visaoAtributos==='lista'}" @click="visaoAtributos='lista'">Lista</button>
+    </div>
+
+    <div v-if="visaoAtributos==='hexagono'" class="hex-wrap">
+      <svg viewBox="0 0 260 260">
+        <polygon v-for="n in 4" :key="'anel'+n" :points="poligono(n*2.5)" fill="none" :stroke="corLinhaSuave" stroke-width="1"/>
+        <line v-for="(pt,i) in eixosMax" :key="'eixo'+i" x1="130" y1="130" :x2="pt.x" :y2="pt.y" :stroke="corLinhaSuave" stroke-width="1"/>
+        <polygon :points="poligonoValores" :fill="corPreenchimento" :stroke="corPrincipal" stroke-width="2" :style="brilhoAtivo ? {filter:'drop-shadow(0 0 5px '+corPrincipal+')'} : {}"/>
+        <text v-for="(pt,i) in eixosMax" :key="'lbl'+i" :x="pt.x + (pt.x>130?12:(pt.x<130?-12:0))" :y="pt.y + (pt.y>130?14:-8)"
+              text-anchor="middle" font-family="Cinzel,serif" font-size="9" :fill="corPrincipal">{{ atributosOrdem[i].label }}</text>
+        <text v-for="(pt,i) in eixosMax" :key="'val'+i" :x="pt.x + (pt.x>130?12:(pt.x<130?-12:0))" :y="pt.y + (pt.y>130?26:4)"
+              text-anchor="middle" font-family="Rajdhani,sans-serif" font-size="10" font-weight="700" fill="#e9e4f7">{{ totalAtributo(atributosOrdem[i].chave) }}</text>
+      </svg>
+    </div>
+
+    <div v-else>
+      <div class="atributo-linha" v-for="a in atributosOrdem" :key="a.chave">
+        <span class="nome">{{ a.label }}</span>
+        <template v-if="!modoVisualizacao">
+          <div class="stepper">
+            <button @click="ajustarBase(a.chave,-1)">−</button>
+            <span>{{ p.atributos[a.chave].base }}</span>
+            <button @click="ajustarBase(a.chave,1)">+</button>
+          </div>
+        </template>
+        <span v-else class="bonus"></span>
+        <span class="bonus">+{{ p.atributos[a.chave].bonusRacial || 0 }}</span>
+        <span class="total">{{ totalAtributo(a.chave) }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PERÍCIAS -->
+  <section class="painel">
+    <div class="titulo-secao">Perícias</div>
+    <div class="subrotulo" style="margin-bottom:0.4rem;">Nível 0 = não possui · 1 a 3 = grau de treino</div>
+    <div class="pericia-fixa-linha" v-for="per in p.pericias" :key="per.id">
+      <span class="nome">{{ per.nome }}</span>
+      <div class="nivel-dots">
+        <span v-for="n in [0,1,2,3]" :key="n" :class="{on: per.nivel===n}" @click="!modoVisualizacao && (per.nivel=n)">{{ n }}</span>
+      </div>
+      <button v-if="!modoVisualizacao && per.custom" class="remover" @click="removerPericia(per.id)">✕</button>
+    </div>
+
+    <template v-if="!modoVisualizacao">
+      <div style="display:flex;gap:0.3rem;margin-top:0.4rem;">
+        <input v-model="novaPericia" placeholder="Nova perícia" @keyup.enter="adicionarPericia">
+        <button class="btn ghost" style="white-space:nowrap;" @click="adicionarPericia">+ add</button>
+      </div>
+    </template>
+  </section>
+
+  <!-- VANTAGENS -->
+  <section class="painel">
+    <div class="titulo-secao">Vantagens</div>
+    <div class="vantagem-linha" v-for="v in p.vantagens" :key="v.id">
+      <span class="nome">{{ v.nome }}</span>
+      <template v-if="!modoVisualizacao">
+        <div class="stepper">
+          <button @click="ajustarVantagem(v.id,-1)">−</button>
+          <span v-if="v.valor<10">{{ v.valor }}</span>
+          <svg v-else class="vantagem-max" viewBox="0 0 20 20"><polygon points="10,1 19,10 10,19 1,10" fill="none" :stroke="corPrincipal" stroke-width="1.6"/><line x1="1" y1="10" x2="19" y2="10" :stroke="corPrincipal" stroke-width="1.6"/></svg>
+          <button @click="ajustarVantagem(v.id,1)">+</button>
+        </div>
+        <button class="remover" @click="removerVantagem(v.id)">✕</button>
+      </template>
+      <template v-else>
+        <span v-if="v.valor<10" style="font-family:var(--serif);font-weight:700;color:var(--accent-bright);">{{ v.valor }}</span>
+        <svg v-else class="vantagem-max" viewBox="0 0 20 20"><polygon points="10,1 19,10 10,19 1,10" fill="none" :stroke="corPrincipal" stroke-width="1.6"/><line x1="1" y1="10" x2="19" y2="10" :stroke="corPrincipal" stroke-width="1.6"/></svg>
+      </template>
+    </div>
+    <template v-if="!modoVisualizacao">
+      <div style="display:flex;gap:0.3rem;margin-top:0.4rem;">
+        <input v-model="novaVantagem" placeholder="Nova vantagem" @keyup.enter="adicionarVantagem">
+        <button class="btn ghost" style="white-space:nowrap;" @click="adicionarVantagem">+ add</button>
+      </div>
+    </template>
+  </section>
+
+  <!-- CONDIÇÕES -->
+  <section class="painel">
+    <div class="titulo-secao">Condições</div>
+    <div class="tags">
+      <span v-for="c in condicoesFixas" :key="c" class="tag" :class="{off: !p.condicoes.includes(c)}" @click="!modoVisualizacao && toggleCondicao(c)">{{ c }}</span>
+      <span v-for="c in condicoesCustom" :key="c" class="tag" @click="!modoVisualizacao && toggleCondicao(c)">{{ c }} <template v-if="!modoVisualizacao">✕</template></span>
+      <button v-if="!modoVisualizacao" class="tag-add" @click="mostrarAddCond=!mostrarAddCond">+</button>
+    </div>
+    <div v-if="mostrarAddCond && !modoVisualizacao" style="display:flex;gap:0.3rem;margin-top:0.4rem;">
+      <input v-model="novaCondicao" placeholder="Condição personalizada" @keyup.enter="adicionarCondicao">
+      <button class="btn ghost" @click="adicionarCondicao">Add</button>
+    </div>
+  </section>
+
+  <!-- HABILIDADES EXTRAS -->
+  <section class="painel">
+    <div class="titulo-secao">Habilidades Extras</div>
+    <div class="item-lista" v-for="h in p.habilidades" :key="h.id">
+      <div class="item-topo">
+        <template v-if="!modoVisualizacao"><input v-model="h.nome" placeholder="Nome" style="flex:1;"></template>
+        <span v-else class="item-nome">{{ h.nome }}</span>
+        <div class="nivel-dots" v-if="!modoVisualizacao">
+          <span v-for="n in [0,1,2,3]" :key="n" :class="{on:h.nivel===n}" @click="h.nivel=n">{{ n }}</span>
+        </div>
+        <span v-else style="font-size:0.7rem;color:var(--accent-bright);">Nv.{{ h.nivel }}</span>
+        <button v-if="!modoVisualizacao" class="remover" @click="removerHabilidade(h.id)">✕</button>
+      </div>
+      <template v-if="!modoVisualizacao">
+        <label>Descrição</label>
+        <textarea v-model="h.descricao" rows="2"></textarea>
+      </template>
+      <div v-else-if="h.descricao" style="font-size:0.78rem;color:var(--text-dim);margin-top:0.2rem;">{{ h.descricao }}</div>
+    </div>
+    <button v-if="!modoVisualizacao" class="botao-secundario" @click="adicionarHabilidade">+ Nova habilidade</button>
+  </section>
+
+  <!-- NOTAS -->
+  <section class="painel">
+    <div class="titulo-secao">Notas</div>
+    <template v-if="!modoVisualizacao">
+      <textarea v-model="p.notas" rows="3" placeholder="Anotações livres, histórico, itens, etc."></textarea>
+    </template>
+    <div v-else style="font-size:0.82rem;white-space:pre-wrap;color:var(--text-dim);">{{ p.notas || '—' }}</div>
+  </section>
+
+  </div><!-- /captura -->
+
+</div>
+
+<script>
+const { createApp } = Vue;
+
+const RACAS_RESTRITAS = ['Mago Louco','Demônio','Serafim','Seres Cósmicos','Deuses'];
+const RACAS_NOMES = [
+  'Mago Louco','Humano','Elfo','Anão','Orc','Goblin','Dracônico','Bestial','Golem','Autômato',
+  'Fada','Gnomo','Kobold','Vampiro','Espectro','Lich','Demônio','Serafim','Serafita','Elemental',
+  'Cipionte','Ghoul','Plasmoide','Filhos da Floresta','Raça Planar','Seres Cósmicos','Gigantes',
+  'Gigantes de Gelo','Titãs','Tupogengas','Anomalias','Deuses','Semideuses','Dragões','Espíritos',
+  'Meio-Sangue','Dríade','Necrômante Ascendido','Arauto','Homúnculo','Ciborgue Arcano','Eco',
+  'Onírico','Avatar','Heresiarca'
+];
+
+/* Vida base por raça — só temos valores confirmados de Humano/Anão/Elfo/Fada.
+   O resto usa VIDA_BASE_PADRAO até vocês definirem os números reais. */
+const VIDA_BASE_RACA = { 'Humano':40, 'Anão':50, 'Elfo':30, 'Fada':25 };
+const VIDA_BASE_PADRAO = 35;
+
+const ATRIBUTOS_ORDEM = [
+  {chave:'forca', label:'Força'},
+  {chave:'inteligencia', label:'Inteligência'},
+  {chave:'habilidade', label:'Habilidade'},
+  {chave:'agilidade', label:'Agilidade'},
+  {chave:'resistencia', label:'Resistência'},
+  {chave:'mana', label:'Mana'},
+];
+
+const PERICIAS_FIXAS = ['Arrombar fechaduras','Acrobacia','Furtividade','Equilíbrio','Mecânica','Alquimia','Leitura lateral','Operar máquina','Escalar','Nadar'];
+
+const MARCADORES = [
+  {chave:'machucado', rotulo:'Machucado'},
+  {chave:'cansaco', rotulo:'Cansaço'},
+  {chave:'fadigaArcana', rotulo:'Fadiga Arcana'},
+  {chave:'exaustao', rotulo:'Exaustão'},
+  {chave:'sedento', rotulo:'Sedento'},
+  {chave:'faminto', rotulo:'Faminto'},
+];
+
+createApp({
+  data(){
+    const atributos = {};
+    ATRIBUTOS_ORDEM.forEach(a => atributos[a.chave] = { base:1, bonusRacial:0 });
+    const marcadores = {};
+    MARCADORES.forEach(m => marcadores[m.chave] = 0);
+
+    return {
+      modoVisualizacao:false,
+      visaoAtributos:'hexagono',
+      mostrarAddCond:false,
+      mostrarAparencia:false,
+      seletorRacaAberto:false,
+      novaCondicao:'',
+      novaPericia:'',
+      novaVantagem:'',
+      tema:'grimorio',
+      temasDisponiveis:[
+        {chave:'grimorio', label:'Grimório Arcano'},
+        {chave:'cyberpunk', label:'Cyberpunk'},
+        {chave:'hud', label:'HUD Militar'},
+        {chave:'sombrio', label:'Sombrio Minimalista'},
+      ],
+      corPrincipal:'#9d7bff',
+      coresPreset:['#9d7bff','#5ec4ff','#5be38a','#ffcf4d','#ff8a5c','#ff5d9e','#ff5d5d'],
+      brilhoAtivo:true,
+      atributosOrdem: ATRIBUTOS_ORDEM,
+      marcadoresConfig: MARCADORES,
+      condicoesFixas:['Envenenado','Amedrontado','Atordoado','Cego','Silenciado','Sangrando','Inconsciente'],
+      racas: RACAS_NOMES.map(n => ({nome:n, restrita: RACAS_RESTRITAS.includes(n)})),
+      p:{
+        identidade:{ nome:'', apelido:'', idade:null, tituloAtual:'', racaPrincipal:'', racaSecundaria:'', dinheiro:0, hibrido:false, alinhamentoOrdem:'Neutro', alinhamentoMoral:'Neutro', retrato:'' },
+        estado:{ vidaAtual:10 },
+        marcadores,
+        atributos,
+        pericias: PERICIAS_FIXAS.map((nome,i) => ({id:'pf'+i, nome, nivel:0, custom:false})),
+        vantagens:[],
+        condicoes:[],
+        habilidades:[],
+        notas:''
+      }
+    };
+  },
+  computed:{
+    condicoesCustom(){ return this.p.condicoes.filter(c => !this.condicoesFixas.includes(c)); },
+    pontosGastos(){ return ATRIBUTOS_ORDEM.reduce((s,a) => s + this.p.atributos[a.chave].base, 0); },
+    pontosRestantes(){ return 30 - this.pontosGastos; },
+    vidaBaseRaca(){
+      const r = this.p.identidade.racaPrincipal;
+      return VIDA_BASE_RACA[r] !== undefined ? VIDA_BASE_RACA[r] : VIDA_BASE_PADRAO;
+    },
+    vidaMaxima(){ return this.vidaBaseRaca + this.totalAtributo('resistencia') * 6; },
+    circunferencia(){ return 2 * Math.PI * 31; },
+    offsetVida(){
+      const pct = Math.max(0, Math.min(1, this.p.estado.vidaAtual / (this.vidaMaxima || 1)));
+      return this.circunferencia * (1 - pct);
+    },
+    eixosMax(){ return ATRIBUTOS_ORDEM.map((a,i) => this.pontoHex(i, 10)); },
+    poligonoValores(){
+      return ATRIBUTOS_ORDEM.map((a,i) => {
+        const v = this.totalAtributo(a.chave);
+        const pt = this.pontoHex(i, v);
+        return pt.x + ',' + pt.y;
+      }).join(' ');
+    },
+    rgbPrincipal(){ return this.hexParaRgb(this.corPrincipal); },
+    corLinhaSuave(){ const c=this.rgbPrincipal; return 'rgba('+c.r+','+c.g+','+c.b+',0.18)'; },
+    corPreenchimento(){ const c=this.rgbPrincipal; return 'rgba('+c.r+','+c.g+','+c.b+',0.28)'; },
+    estiloRaiz(){
+      const c = this.rgbPrincipal;
+      return {
+        '--accent': this.corPrincipal,
+        '--accent-bright': this.ajustarCor(this.corPrincipal, 30),
+        '--accent-dark': this.ajustarCor(this.corPrincipal, -25),
+        '--line': 'rgba('+c.r+','+c.g+','+c.b+',0.28)',
+        '--line-soft': 'rgba('+c.r+','+c.g+','+c.b+',0.14)',
+        '--accent-wash': 'rgba('+c.r+','+c.g+','+c.b+',0.16)',
+      };
+    }
+  },
+  methods:{
+    totalAtributo(chave){
+      const a = this.p.atributos[chave];
+      return a.base + (a.bonusRacial || 0);
+    },
+    pontoHex(indice, valor){
+      const raio = (valor/10) * 100;
+      const ang = (Math.PI/180) * (indice*60 - 90);
+      return { x: 130 + raio*Math.cos(ang), y: 130 + raio*Math.sin(ang) };
+    },
+    poligono(escala){
+      const pontos = [];
+      for(let i=0;i<6;i++){
+        const ang = (Math.PI/180)*(i*60-90);
+        pontos.push((130+escala*10*Math.cos(ang))+','+(130+escala*10*Math.sin(ang)));
+      }
+      return pontos.join(' ');
+    },
+    ajustarBase(chave, delta){
+      const a = this.p.atributos[chave];
+      const novo = a.base + delta;
+      if(novo < 1 || novo > 10) return;
+      if(delta > 0 && this.pontosRestantes <= 0) return;
+      a.base = novo;
+    },
+    ajustarMarcador(chave, delta){
+      const novo = this.p.marcadores[chave] + delta;
+      if(novo < 0) return;
+      this.p.marcadores[chave] = novo;
+    },
+    ajustarVantagem(id, delta){
+      const v = this.p.vantagens.find(x => x.id === id);
+      if(!v) return;
+      const novo = v.valor + delta;
+      if(novo < 0 || novo > 10) return;
+      v.valor = novo;
+    },
+    adicionarVantagem(){
+      if(!this.novaVantagem.trim()) return;
+      this.p.vantagens.push({id:'v'+Date.now(), nome:this.novaVantagem.trim(), valor:0});
+      this.novaVantagem = '';
+    },
+    removerVantagem(id){ this.p.vantagens = this.p.vantagens.filter(v => v.id !== id); },
+    adicionarPericia(){
+      if(!this.novaPericia.trim()) return;
+      this.p.pericias.push({id:'p'+Date.now(), nome:this.novaPericia.trim(), nivel:0, custom:true});
+      this.novaPericia = '';
+    },
+    removerPericia(id){ this.p.pericias = this.p.pericias.filter(x => x.id !== id); },
+    toggleCondicao(c){
+      const i = this.p.condicoes.indexOf(c);
+      if(i>=0) this.p.condicoes.splice(i,1); else this.p.condicoes.push(c);
+    },
+    adicionarCondicao(){
+      if(!this.novaCondicao.trim()) return;
+      this.toggleCondicao(this.novaCondicao.trim());
+      this.novaCondicao = '';
+      this.mostrarAddCond = false;
+    },
+    adicionarHabilidade(){
+      this.p.habilidades.push({id:'h'+Date.now(), nome:'', nivel:0, descricao:''});
+    },
+    removerHabilidade(id){ this.p.habilidades = this.p.habilidades.filter(h => h.id !== id); },
+    selecionarRaca(r){
+      if(r.restrita) return;
+      this.p.identidade.racaPrincipal = r.nome;
+      this.seletorRacaAberto = false;
+    },
+    uploadRetrato(e){
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => { this.p.identidade.retrato = ev.target.result; };
+      reader.readAsDataURL(file);
+    },
+    hexParaRgb(hex){
+      let h = (hex||'#9d7bff').replace('#','');
+      if(h.length===3) h = h.split('').map(x=>x+x).join('');
+      const num = parseInt(h,16) || 0x9d7bff;
+      return { r:(num>>16)&255, g:(num>>8)&255, b:num&255 };
+    },
+    ajustarCor(hex, percent){
+      const c = this.hexParaRgb(hex);
+      const ajust = v => Math.min(255, Math.max(0, Math.round(v + 2.55*percent)));
+      const r = ajust(c.r), g = ajust(c.g), b = ajust(c.b);
+      return '#' + [r,g,b].map(x => x.toString(16).padStart(2,'0')).join('');
+    },
+    async exportarImagem(){
+      const estavaEditando = !this.modoVisualizacao;
+      const painelAberto = this.mostrarAparencia;
+      this.modoVisualizacao = true;
+      this.mostrarAparencia = false;
+      await this.$nextTick();
+      const el = document.getElementById('captura');
+      const canvas = await html2canvas(el, { backgroundColor:'#0c0a16', scale:2 });
+      canvas.toBlob(async blob => {
+        const nomeArquivo = (this.p.identidade.nome || 'ficha').replace(/\s+/g,'_') + '.png';
+        const file = new File([blob], nomeArquivo, {type:'image/png'});
+        if(navigator.canShare && navigator.canShare({files:[file]})){
+          try{ await navigator.share({files:[file], title:'Ficha CORE'}); }
+          catch(e){ baixarBlob(blob, nomeArquivo); }
+        } else {
+          baixarBlob(blob, nomeArquivo);
+        }
+        if(estavaEditando) this.modoVisualizacao = false;
+        this.mostrarAparencia = painelAberto;
+      });
+      function baixarBlob(blob, nome){
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = nome; a.click();
+        URL.revokeObjectURL(url);
+      }
+    }
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
