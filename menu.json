@@ -59,7 +59,7 @@
     {
       "titulo": "Fichas editor",
       "descricao": "crie suas fichas de uma forma fasil",
-      "arquivo": "fichas-core.html",
+      "arquivo": "ficha-core.html",
       "senha": "",
       "aviso": "esso aita e uma beta,pode se alterador",
       "categoria": ""
