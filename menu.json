@@ -55,6 +55,14 @@
       "senha": "",
       "aviso": "",
       "categoria": ""
+    },
+    {
+      "titulo": "Fichas editor",
+      "descricao": "crie suas fichas de uma forma fasil",
+      "arquivo": "fichas-core",
+      "senha": "",
+      "aviso": "esso aita e uma beta,pode se alterador",
+      "categoria": ""
     }
   ]
 }
