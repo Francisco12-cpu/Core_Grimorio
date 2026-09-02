@@ -13,56 +13,49 @@
       "descricao": "Feito pelo caçador, lenhador e estudioso.",
       "arquivo": "bestiario.html",
       "senha": "",
-      "aviso": "Feito pelo caçador, lenhador e estudioso",
-      "categoria": ""
+      "aviso": "Feito pelo caçador, lenhador e estudioso"
     },
     {
       "titulo": "História dos Elfos",
       "descricao": "Compêndio de Origem, Racionalidade e Estrutura",
       "arquivo": "elfos.html",
       "senha": "",
-      "aviso": "",
-      "categoria": ""
+      "aviso": ""
     },
     {
       "titulo": "Os ultimos relatos",
       "descricao": "eu sinto ela em minha mente",
       "arquivo": "relatos.html",
       "senha": "elyria",
-      "aviso": "isso sao os relatos de Altheris Vonn",
-      "categoria": ""
+      "aviso": "isso sao os relatos de Altheris Vonn"
     },
     {
       "titulo": "Sua amiguinha",
       "descricao": "Não quer usar mais que o falar.",
       "arquivo": "Kael.html",
       "senha": "flor",
-      "aviso": "kael kael kael saulo",
-      "categoria": ""
+      "aviso": "kael kael kael saulo"
     },
     {
       "titulo": "Arkhaven",
       "descricao": "lua vemelhar",
       "arquivo": "Loki.html",
       "senha": "percepcao",
-      "aviso": "loki",
-      "categoria": ""
+      "aviso": "loki"
     },
     {
       "titulo": "Pacto com Vorreth",
       "descricao": "Jurax ,faler comigo . . . . .",
       "arquivo": "Jurax.html",
       "senha": "",
-      "aviso": "",
-      "categoria": ""
+      "aviso": ""
     },
     {
       "titulo": "Fichas editor",
       "descricao": "crie suas fichas de uma forma fasil",
       "arquivo": "ficha-core.html",
       "senha": "",
-      "aviso": "esso aita e uma beta,pode se alterador",
-      "categoria": ""
+      "aviso": "esso aita e uma beta,pode se alterador"
     }
   ]
 }

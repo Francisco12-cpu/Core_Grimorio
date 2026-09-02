@@ -69,7 +69,7 @@ curioso abrisse o arquivo direto pela URL).
 - Não há bundler/framework — edite os `.html` diretamente. Mantenha CSS e JS
   embutidos no próprio arquivo (é o padrão do projeto).
 - Ao criar um novo documento de conteúdo, adicione uma entrada em `menu.json`
-  (`titulo`, `descricao`, `arquivo`, `senha`, `aviso`, `categoria`) — o
+  (`titulo`, `descricao`, `arquivo`, `senha`, `aviso`) — o
   `index.html` não precisa ser tocado para isso.
 - Sempre inclua `<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">` e pelo menos um `@media (max-width: 600px)` (ou 480px) para manter a
   experiência boa no celular, que é o dispositivo principal dos jogadores.
@@ -153,9 +153,6 @@ curioso abrisse o arquivo direto pela URL).
 - [ ] "Modo sonho": um filtro visual (blur leve + saturação diferente) pra
       páginas marcadas como sonho/visão, ativável por uma flag no `menu.json`
       (ex.: `"estiloEspecial": "sonho"`).
-- [ ] Categorias reais no menu (`categoria` já existe no JSON mas não é usada
-      pra agrupar/filtrar os cards) — permitiria seções tipo "Personagens",
-      "Bestiário", "Lore do Mundo".
 
 ### Senha / controle de acesso
 - [ ] Deixar explícito na UI que a senha é uma "trava narrativa", não uma

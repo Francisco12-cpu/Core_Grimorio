@@ -823,8 +823,7 @@
         { label: 'Descrição', valor: item.descricao || '', chave: 'descricao' },
         { label: 'Arquivo', valor: item.arquivo || '', chave: 'arquivo' },
         { label: 'Senha', valor: item.senha || '', chave: 'senha' },
-        { label: 'Aviso', valor: item.aviso || '', chave: 'aviso' },
-        { label: 'Categoria', valor: item.categoria || '', chave: 'categoria' }
+        { label: 'Aviso', valor: item.aviso || '', chave: 'aviso' }
       ];
       camposItem.forEach(campo => {
         const label = document.createElement('label');
@@ -857,8 +856,7 @@
         descricao: '',
         arquivo: '',
         senha: '',
-        aviso: '',
-        categoria: ''
+        aviso: ''
       });
       renderizarEditor();
       renderizarMenu();
