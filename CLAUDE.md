@@ -9,7 +9,12 @@ personagens. Tema visual de grimório/runas, com cadeado rúnico como mecanismo 
 
 ```
 index.html      → Hub principal. Lê menu.json e renderiza os cards de "manuscritos".
-menu.json       → Fonte de dados do menu (título, descrição, arquivo, senha, aviso).
+menu.json       → Fonte de dados do menu (título, descrição, arquivo, senha, aviso,
+                   estiloEspecial).
+manifest.json   → PWA manifest ("adicionar à tela inicial" no celular).
+icons/          → Ícones do manifest (icon-192.png, icon-512.png).
+_template.html  → Ponto de partida pra criar um novo documento de conteúdo (viewport,
+                   fontes, tema e "modo sonho" já prontos).
 bestiario.html  → Documento de conteúdo (bestiário do caçador).
 elfos.html      → Documento de conteúdo (compêndio élfico).
 relatos.html    → Documento de conteúdo (maior arquivo, 368KB — relatos de Altheris Vonn).
@@ -17,25 +22,45 @@ Kael.html       → Documento de conteúdo ("HERMES — A Experiência").
 Loki.html       → Documento de conteúdo ("LOKI — A Ilusão").
 Jurax.html      → Documento de conteúdo ("Evolução do Contrato").
 ficha-core.html → Ferramenta interativa (editor de fichas de personagem), marcada como beta.
+README.md       → Instruções de publicação (GitHub Pages) e "add to home screen".
 ```
 
 Cada página é **autocontida**: HTML + CSS + JS embutidos no próprio arquivo, sem build
-step, sem dependências externas além de fontes do Google Fonts. Isso facilita hospedar
-em GitHub Pages, mas gera duplicação de código entre arquivos (ver Melhorias).
+step, sem dependências externas além de fontes do Google Fonts (e, em `ficha-core.html`,
+Vue 3 + html2canvas via CDN). Isso facilita hospedar em GitHub Pages e é uma escolha
+deliberada do projeto — ver "Por que não há tema.css/tema.js compartilhado" abaixo.
 
 ### Fluxo do hub (`index.html`)
 
 1. Carrega `core_config` do `localStorage`; se não existir, faz `fetch('menu.json')`.
-2. Renderiza um card por item de `menu.itens[]`. Todo item ganha um `item-status`
-   ("Restrito" se tiver `senha`, senão "Disponível").
+2. Renderiza um card por item de `menu.itens[]`, cada um com um sigilo SVG decorativo
+   gerado proceduralmente a partir do título (runas + hash determinístico). Todo item
+   ganha um `item-status` ("Restrito" se tiver `senha`, senão "Disponível").
 3. Ao clicar num card:
    - Se o item tem `aviso`, mostra um modal de aviso antes de prosseguir.
-   - Se o item tem `senha`, abre o "Cadeado Rúnico" (teclado alfabeto→runa).
-   - Senão, redireciona direto pro arquivo.
+   - Se o item tem `senha`, abre o "Cadeado Rúnico" (teclado alfabeto→runa), com um
+     aviso na UI de que é um selo narrativo, não uma proteção real.
+   - Senão, dispara a transição (poeira dourada explodindo + a página "virando") e
+     redireciona pro arquivo. Se o item tem `estiloEspecial: "sonho"`, o arquivo é
+     aberto com `?estilo=sonho` na URL.
 4. Existe sempre um card fixo extra, **"Manuscrito Mestre"**, protegido pela
    `senhaMestre` (padrão `NAUTILUS`), que abre um **editor do mestre** embutido —
-   permite editar título, cores, glitch, senha mestre e os itens do menu, e
-   salvar no `localStorage` ou baixar um novo `menu.json`.
+   permite editar título, cores, glitch, senha mestre e os itens do menu (incluindo
+   `estiloEspecial`), validar se o `arquivo` de um item realmente existe (fetch HEAD),
+   e salvar no `localStorage`, baixar um novo `menu.json` ou copiar o JSON pra área de
+   transferência (mais fácil de colar direto pelo GitHub no celular).
+5. Um botão fixo no canto superior direito liga/desliga um ambiente sonoro opcional
+   (drone + vento sintetizados via Web Audio API, começa mudo por causa das políticas
+   de autoplay do navegador).
+
+### "Modo sonho" (`estiloEspecial`)
+
+Qualquer item do `menu.json` pode ter `"estiloEspecial": "sonho"`. O hub anexa
+`?estilo=sonho` na URL ao abrir o arquivo, e cada página de conteúdo (inclusive
+`_template.html` e `ficha-core.html`) tem um pequeno script que lê esse parâmetro e
+aplica um filtro visual (leve blur + saturação + vinheta) via classe `core-modo-sonho`
+no `<body>`. Pra marcar um manuscrito futuro como sonho/visão, basta esse campo no JSON
+— nenhuma página precisa ser tocada.
 
 ### Como funciona a "senha" (importante)
 
@@ -46,10 +71,11 @@ conteúdo sem digitar senha nenhuma, e a senha correta aparece em texto puro no
 `menu.json` e no código-fonte da página se alguém abrir o DevTools.
 
 Isso está OK para o caso de uso atual (mestre repassa a senha verbalmente para
-criar suspense/imersão na mesa), mas **não é segurança real** — é só um "cadeado
-narrativo". Vale deixar isso consciente para não confiar nisso para conteúdo
-sensível de verdade (ex.: spoilers que estragariam a campanha se um jogador
-curioso abrisse o arquivo direto pela URL).
+criar suspense/imersão na mesa) — a própria UI do cadeado rúnico já deixa isso
+explícito ("Um selo narrativo da mesa — não uma proteção de verdade"). Não confiar
+nisso pra conteúdo sensível de verdade (ex.: spoilers que estragariam a campanha se
+um jogador curioso abrisse o arquivo direto pela URL); se algum dia isso for
+necessário, só um backend validando a senha do lado do servidor resolveria de fato.
 
 ## Sistema visual (tema)
 
@@ -57,127 +83,60 @@ curioso abrisse o arquivo direto pela URL).
   Google Fonts.
 - Paleta: fundo quase preto (`#0d0a07`), dourado antigo (`#d4af37`) e vermelho
   sangue (`#8b1a1a`), cards em tom de pergaminho (`#e8d5b5`).
-- Efeitos de imersão reutilizados em várias páginas: poeira flutuante (partículas
-  douradas), runas decorativas de fundo, "glitch" periódico trocando letras por
-  runas em textos, sons sintetizados via Web Audio API em cliques/navegação,
-  animação de entrada com runas.
+- `index.html`: poeira flutuante, runas decorativas de fundo, glitch periódico nos
+  títulos/descrições dos cards, sigilos SVG por manuscrito, transição de "poeira
+  dourada explodindo + página virando" ao abrir um manuscrito, ambiente sonoro opcional.
+- `bestiario.html`, `elfos.html`, `relatos.html`, `ficha-core.html`: tema "pergaminho
+  antigo" mais quieto — sem runas flutuantes, glitch ou som. Decisão de design
+  confirmada com o mestre (ver "Por que não há tema.css/tema.js compartilhado").
+- `Kael.html`, `Loki.html`, `Jurax.html`: cada um é uma "experiência" interativa
+  bespoke (cenas, glitch RGB, áudio sintetizado sob medida) — visualmente aparentadas
+  (fonte Cinzel, motivo de runas) mas **não** compartilham código entre si.
 - `index.html` e `ficha-core.html` são configuráveis (cor, brilho, senha) via
   editor do mestre; as demais páginas de conteúdo têm o tema fixo no CSS.
+
+### Por que não há tema.css/tema.js compartilhado
+
+Foi cogitado extrair o CSS/JS de poeira/runas/glitch pra arquivos compartilhados.
+Investigando o código, porém: `Kael.html`, `Loki.html` e `Jurax.html` não são cópias
+umas das outras — cada uma implementa seus efeitos de runa/glitch/áudio com parâmetros
+e lógica diferentes (ex.: `#glitch-rgb` tem z-index, timing e estrutura distintos em
+cada arquivo), e `bestiario.html`/`elfos.html`/`relatos.html`/`ficha-core.html` nunca
+tiveram esses efeitos. Ou seja, não existe duplicação real de código a eliminar sem
+achatar o trabalho artesanal já feito em cada página — decisão consciente de manter
+cada arquivo autocontido, como já era o padrão do projeto.
 
 ## Convenções ao editar
 
 - Não há bundler/framework — edite os `.html` diretamente. Mantenha CSS e JS
-  embutidos no próprio arquivo (é o padrão do projeto).
-- Ao criar um novo documento de conteúdo, adicione uma entrada em `menu.json`
-  (`titulo`, `descricao`, `arquivo`, `senha`, `aviso`) — o
-  `index.html` não precisa ser tocado para isso.
-- Sempre inclua `<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">` e pelo menos um `@media (max-width: 600px)` (ou 480px) para manter a
-  experiência boa no celular, que é o dispositivo principal dos jogadores.
+  embutidos no próprio arquivo (é o padrão do projeto — ver seção acima).
+- Ao criar um novo documento de conteúdo, comece a partir de `_template.html` e
+  adicione uma entrada em `menu.json` (`titulo`, `descricao`, `arquivo`, `senha`,
+  `aviso`, `estiloEspecial` opcional) — o `index.html` não precisa ser tocado pra isso.
+- Sempre inclua `<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">`, o favicon rúnico (mesmo `data:` URI usado em
+  todas as páginas) e pelo menos um `@media (max-width: 600px)` para manter a
+  experiência boa no celular, que é o dispositivo principal dos jogadores. Em campos
+  de formulário, use `font-size: 16px` em telas pequenas pra evitar o zoom automático
+  do Safari/iOS ao focar o campo.
 - Use runas apenas do alfabeto já definido em `alfabetoRunico` (index.html) para
   manter consistência entre o teclado de senha e os textos "glitchados".
 
 ---
 
-## Análise do estado atual
+## Lista de ideias futuras (não implementadas)
 
-**Pontos fortes**
-- Identidade visual forte e consistente (fontes, paleta, runas, poeira, glitch)
-  em quase todos os arquivos — já entrega a sensação de "grimório antigo".
-- Mobile já é levado a sério: viewport travado, media queries, teclado rúnico
-  adaptado para telas pequenas.
-- O editor do mestre embutido no `index.html` é uma boa ideia: dá pro mestre
-  adicionar itens sem editar JSON na mão.
-- Tudo funciona sem servidor/backend — fácil publicar em GitHub Pages.
-
-**Problemas / inconsistências encontradas**
-1. **Bug de título**: `relatos.html` tem `<title>Bestiário do Caçador</title>`
-   (copiado de `bestiario.html` por engano) — a aba do navegador mostra o nome
-   errado.
-2. **"Senha" não protege nada de verdade** (ver seção acima) — qualquer jogador
-   que salve/compartilhe a URL do arquivo ignora o cadeado.
-3. **Sem "voltar ao menu"**: as páginas de conteúdo não têm link de volta pro
-   `index.html`; o jogador usa o botão "voltar" do navegador/celular. Decisão de
-   design confirmada: não adicionar um botão fixo na tela, pois sobreporia
-   outros elementos e quebraria a imersão — se algum dia quiser resolver isso,
-   pensar em algo integrado ao tema (ex.: um símbolo rúnico discreto no rodapé,
-   só visível ao rolar até o fim) em vez de um botão flutuante.
-4. **Duplicação de CSS/JS** entre `Kael.html`, `Loki.html`, `Jurax.html`,
-   `bestiario.html`, `elfos.html` (poeira, runas, glitch, fontes) — qualquer
-   ajuste no tema precisa ser replicado manualmente em cada arquivo.
-5. **`relatos.html` com 368KB** num único arquivo é pesado pra 3G/4G fraco de
-   mesa — vale investigar se dá pra separar imagens/assets ou lazy-load trechos.
-6. **Sem link do GitHub Pages confirmado** (não há `.github/workflows` nem
-   `CNAME`) — não está claro se o site já está publicado num link único e fixo
-   para mandar aos jogadores.
-7. **`ficha-core.html`** está marcado como beta ("pode se alterar") e sem
-   `@media` própria — funciona por ter layout centralizado estreito, mas não
-   foi testado explicitamente pra mobile como as outras páginas.
-8. **`config.itens` do editor do mestre só salva no `localStorage` do próprio
-   navegador do mestre** ou exige baixar um `menu.json` e subir manualmente pro
-   repo — não há como o mestre editar direto do celular e isso já refletir pros
-   jogadores sem um passo manual de deploy.
-
----
-
-## Lista de melhorias e adições sugeridas
-
-### Rápidas (alto impacto, baixo esforço)
-- [ ] Corrigir o `<title>` de `relatos.html`.
-- [ ] Publicar via GitHub Pages e fixar a URL única num só lugar (ex.: no topo
-      do `index.html` como comentário, ou README) pra sempre mandar o mesmo link
-      pros jogadores.
-- [ ] Adicionar favicon/ícone consistente com o rúnico já usado em `index.html`
-      nas demais páginas (hoje só o hub tem).
-
-### Estrutural (organização e manutenção)
-- [ ] Extrair o CSS/JS comum (poeira, runas de fundo, glitch, fontes, cores) pra
-      arquivos compartilhados `tema.css` e `tema.js`, incluídos via `<link>`/
-      `<script src>` em todas as páginas — elimina duplicação e permite trocar o
-      visual do grimório inteiro num lugar só.
-  - Compensação: quebra o padrão "arquivo único autocontido" atual, que também
-    tem a vantagem de cada página poder ser aberta isoladamente sem depender de
-    outro arquivo. Vale decidir isso com o mestre antes de migrar.
-- [ ] Padronizar breakpoints (hoje varia entre 480px e 600px) num só valor.
-- [ ] Criar um pequeno template-base (`_template.html`) pra novas páginas de
-      conteúdo já saírem com viewport, fontes e tema prontos (sem elemento fixo
-      de navegação — ver decisão de design acima).
-
-### Imersão / experiência ("sonhos", mais visual)
-- [ ] Transições de página tipo "dissolver em poeira dourada" ao entrar/sair de
-      um manuscrito (hoje só existe overlay simples com runas).
-- [ ] Efeito de "página de grimório virando" ao trocar de manuscrito.
-- [ ] Trilha sonora ambiente opcional (loop baixo de vento/fogueira), com botão
-      de mute — hoje só há efeitos sonoros pontuais de clique.
-- [ ] Ilustrações/artes por manuscrito (retrato do personagem, símbolo da
-      criatura no bestiário) — pode ser SVG inline pra não pesar o carregamento.
-- [ ] "Modo sonho": um filtro visual (blur leve + saturação diferente) pra
-      páginas marcadas como sonho/visão, ativável por uma flag no `menu.json`
-      (ex.: `"estiloEspecial": "sonho"`).
-
-### Senha / controle de acesso
-- [ ] Deixar explícito na UI que a senha é uma "trava narrativa", não uma
-      trava de segurança (ex.: texto discreto tipo "protegido por um selo
-      rúnico" ao invés de sugerir criptografia).
-- [ ] Opção de senha por sessão: depois de digitada uma vez, não pedir de novo
-      no mesmo aparelho (guardar flag no `localStorage` por item) — evita o
-      jogador ter que perguntar a senha de novo toda vez que reabre o link.
-- [ ] Se algum dia precisar de sigilo de verdade (ex.: revelação que muda o
-      rumo da campanha), considerar um pequeno backend/Cloudflare Worker que
-      sirva o conteúdo só após validar a senha no servidor — os arquivos
-      estáticos atuais nunca vão proteger de fato quem souber a URL.
-
-### Mobile / responsividade
-- [ ] Testar `ficha-core.html` em telas pequenas de verdade e adicionar
-      `@media` se necessário (hoje depende só do `max-width:520px` do
-      container).
-- [ ] Adicionar "add to home screen" (manifest.json simples) pra virar um
-      atalho na tela inicial do celular do jogador, reforçando a sensação de
-      "grimório instalado".
-
-### Fluxo do mestre
-- [ ] Facilitar publicar as edições do "Manuscrito Mestre" sem precisar baixar
-      o JSON e subir manualmente — por exemplo, um botão que já gera o link do
-      GitHub pra colar o conteúdo, ou migrar a config pra um serviço simples
-      tipo GitHub Gist/Pages Actions.
-- [ ] Validar no editor do mestre se `arquivo` de um novo item realmente existe
-      antes de salvar, pra evitar cards quebrados no menu.
+- **Ilustrações/artes bespoke por manuscrito** (retrato do personagem, símbolo da
+  criatura no bestiário): hoje cada card só tem um sigilo procedural genérico
+  (runas + hash do título); arte de verdade por manuscrito ainda é trabalho manual
+  em aberto.
+- **Página de grimório virando com efeito de flip 3D nas duas metades da página**
+  (hoje a transição já faz poeira dourada explodindo + um flip simples no menu; um
+  efeito de "livro abrindo" mais elaborado, com as duas metades da tela girando em
+  eixos opostos, ficou de fora por complexidade/risco de quebrar em telas pequenas).
+- **Categorias no menu**: removido do escopo por decisão do mestre — não usar o
+  campo `categoria`.
+- **Senha por sessão** (não pedir de novo no mesmo aparelho depois da primeira vez):
+  removido do escopo por decisão do mestre — a senha deve continuar sendo pedida
+  toda vez.
+- **Sigilo real do lado do servidor**: fora de escopo enquanto o site for 100%
+  estático — só um backend validando a senha resolveria de verdade.
