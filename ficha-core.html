@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ficha CORE</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90' fill='%23d4af37'%3Eᚱ%3C/text%3E%3C/svg%3E">
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -272,6 +273,25 @@ textarea{resize:vertical;min-height:2.4rem;}
 .cor-custom{display:inline-block;background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);}
 .cor-custom input[type=color]{opacity:0;width:100%;height:100%;position:absolute;top:0;left:0;cursor:pointer;border:none;padding:0;}
 .check-linha{display:flex;align-items:center;gap:0.4rem;margin-top:0.55rem;font-size:0.75rem;color:var(--text-dim);text-transform:none;letter-spacing:0;}
+
+/* Evita o zoom automático do Safari/iOS ao focar campos com fonte < 16px */
+@media (max-width: 600px) {
+  input, select, textarea { font-size: 16px; }
+}
+
+/* Modo sonho: ativado via ?estilo=sonho na URL (definido pelo mestre no menu.json) */
+body.core-modo-sonho {
+  filter: blur(0.4px) saturate(1.3) brightness(0.96);
+  transition: filter 1.2s ease;
+}
+body.core-modo-sonho::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(20,10,30,0.35) 100%);
+  pointer-events: none;
+  z-index: 999;
+  mix-blend-mode: multiply;
+}
 </style>
 </head>
 <body>
@@ -778,6 +798,15 @@ createApp({
     }
   }
 }).mount('#app');
+
+(function ativarModoSonho() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('estilo') === 'sonho') {
+      document.body.classList.add('core-modo-sonho');
+    }
+  } catch (e) {}
+})();
 </script>
 </body>
 </html>
