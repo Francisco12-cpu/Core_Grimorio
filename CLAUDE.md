@@ -95,9 +95,12 @@ curioso abrisse o arquivo direto pela URL).
    errado.
 2. **"Senha" não protege nada de verdade** (ver seção acima) — qualquer jogador
    que salve/compartilhe a URL do arquivo ignora o cadeado.
-3. **Sem "voltar ao menu"**: as páginas de conteúdo não parecem ter um link de
-   volta pro `index.html` — no celular, o jogador tem que usar o botão "voltar"
-   do navegador.
+3. **Sem "voltar ao menu"**: as páginas de conteúdo não têm link de volta pro
+   `index.html`; o jogador usa o botão "voltar" do navegador/celular. Decisão de
+   design confirmada: não adicionar um botão fixo na tela, pois sobreporia
+   outros elementos e quebraria a imersão — se algum dia quiser resolver isso,
+   pensar em algo integrado ao tema (ex.: um símbolo rúnico discreto no rodapé,
+   só visível ao rolar até o fim) em vez de um botão flutuante.
 4. **Duplicação de CSS/JS** entre `Kael.html`, `Loki.html`, `Jurax.html`,
    `bestiario.html`, `elfos.html` (poeira, runas, glitch, fontes) — qualquer
    ajuste no tema precisa ser replicado manualmente em cada arquivo.
@@ -120,8 +123,6 @@ curioso abrisse o arquivo direto pela URL).
 
 ### Rápidas (alto impacto, baixo esforço)
 - [ ] Corrigir o `<title>` de `relatos.html`.
-- [ ] Adicionar um botão/link fixo "◂ Voltar ao Grimório" em todas as páginas de
-      conteúdo, apontando pra `index.html`.
 - [ ] Publicar via GitHub Pages e fixar a URL única num só lugar (ex.: no topo
       do `index.html` como comentário, ou README) pra sempre mandar o mesmo link
       pros jogadores.
@@ -138,7 +139,8 @@ curioso abrisse o arquivo direto pela URL).
     outro arquivo. Vale decidir isso com o mestre antes de migrar.
 - [ ] Padronizar breakpoints (hoje varia entre 480px e 600px) num só valor.
 - [ ] Criar um pequeno template-base (`_template.html`) pra novas páginas de
-      conteúdo já saírem com viewport, fontes, tema e botão de voltar prontos.
+      conteúdo já saírem com viewport, fontes e tema prontos (sem elemento fixo
+      de navegação — ver decisão de design acima).
 
 ### Imersão / experiência ("sonhos", mais visual)
 - [ ] Transições de página tipo "dissolver em poeira dourada" ao entrar/sair de
