@@ -412,6 +412,76 @@
     75% { transform: translateX(-3px); }
     100% { transform: translateX(0); }
   }
+
+  .nota-selo {
+    font-size: 0.7rem;
+    color: #7a6440;
+    font-style: italic;
+    margin-top: -0.5rem;
+  }
+
+  /* Botão de ambiente sonoro */
+  .botao-ambiente {
+    position: fixed;
+    top: 14px; right: 14px;
+    z-index: 15;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--gold-dark);
+    background: rgba(13,10,7,0.6);
+    color: var(--gold);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: box-shadow 0.3s, transform 0.2s;
+  }
+  .botao-ambiente:hover { transform: scale(1.08); }
+  .botao-ambiente.ativo { box-shadow: 0 0 16px rgba(212,175,55,0.7); }
+  @media (max-width: 600px) {
+    .botao-ambiente { width: 34px; height: 34px; font-size: 1rem; top: 10px; right: 10px; }
+  }
+
+  /* Transição entre manuscritos: poeira dourada + página virando */
+  .transicao-overlay {
+    position: fixed; inset: 0; z-index: 40;
+    background: radial-gradient(circle at center, rgba(20,14,8,0.5), rgba(0,0,0,0.95) 75%);
+    display: flex; justify-content: center; align-items: center;
+    overflow: hidden;
+  }
+  .transicao-runa {
+    font-family: var(--fonte-titulo);
+    font-size: 3rem;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(212,175,55,0.9);
+    animation: transicaoRunaPulso 0.9s ease-in-out forwards;
+    z-index: 2;
+  }
+  @keyframes transicaoRunaPulso {
+    0% { opacity: 0; transform: scale(0.5) rotate(-15deg); }
+    40% { opacity: 1; transform: scale(1.15) rotate(3deg); }
+    100% { opacity: 0; transform: scale(1.4) rotate(0deg); }
+  }
+  .poeira-explosao {
+    position: absolute;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 10px var(--gold);
+    left: 50%; top: 50%;
+    animation: explodirPoeira 0.9s ease-out forwards;
+  }
+  @keyframes explodirPoeira {
+    0% { transform: translate(-50%,-50%) translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(-50%,-50%) translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+  }
+  #menuPrincipal.virando-pagina {
+    animation: virarPagina 0.6s ease-in forwards;
+    transform-origin: left center;
+  }
+  @keyframes virarPagina {
+    0% { transform: perspective(1200px) rotateY(0deg); opacity: 1; filter: brightness(1); }
+    100% { transform: perspective(1200px) rotateY(-95deg); opacity: 0.2; filter: brightness(0.4); }
+  }
 </style>
 </head>
 <body>
@@ -426,6 +496,8 @@
   <span class="intro-runa">ᛒ</span>
   <span class="intro-runa">ᚱ</span>
 </div>
+
+<button class="botao-ambiente" id="botaoAmbiente" type="button" aria-label="Ativar ambiente sonoro">🔈</button>
 
 <div class="pagina" id="menuPrincipal">
   <header>
@@ -452,6 +524,7 @@
   <div class="modal">
     <h3>Cadeado Rúnico</h3>
     <p>Digite as letras ou clique nas runas.</p>
+    <p class="nota-selo">Um selo narrativo da mesa — não uma proteção de verdade. O mestre revela a senha em voz alta.</p>
     <div class="input-senha" id="inputSenha"></div>
     <div class="teclado-runico" id="tecladoRunico"></div>
     <div class="modal-botoes">
@@ -468,6 +541,7 @@
     <div id="editorConteudo"></div>
     <button id="btnSalvarLocal">Salvar no Navegador</button>
     <button id="btnBaixarJSON">Baixar JSON</button>
+    <button id="btnCopiarJSON">Copiar JSON</button>
     <button id="btnFecharEditor">Fechar</button>
   </div>
 </div>
@@ -677,24 +751,42 @@
       inputSenha.dataset.letras = '';
       modalSenha.classList.add('ativo');
     } else {
-      redirecionar(itemAtual.arquivo);
+      redirecionar(itemAtual.arquivo, itemAtual.estiloEspecial);
     }
   }
 
-  function redirecionar(arquivo) {
+  function redirecionar(arquivo, estiloEspecial) {
     const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:40;display:flex;justify-content:center;align-items:center;font-family:Cinzel;font-size:3rem;color:var(--gold);text-shadow:0 0 30px rgba(212,175,55,0.9);';
-    overlay.textContent = 'ᚦ•ᛉ•ᛒ•ᚱ';
+    overlay.className = 'transicao-overlay';
+
+    const runaTexto = document.createElement('div');
+    runaTexto.className = 'transicao-runa';
+    runaTexto.textContent = 'ᚦ•ᛉ•ᛒ•ᚱ';
+    overlay.appendChild(runaTexto);
+
+    for (let i = 0; i < 28; i++) {
+      const particula = document.createElement('span');
+      particula.className = 'poeira-explosao';
+      const angulo = Math.random() * Math.PI * 2;
+      const distancia = 80 + Math.random() * 220;
+      particula.style.setProperty('--dx', Math.cos(angulo) * distancia + 'px');
+      particula.style.setProperty('--dy', Math.sin(angulo) * distancia + 'px');
+      particula.style.animationDelay = (Math.random() * 0.15) + 's';
+      overlay.appendChild(particula);
+    }
+
     document.body.appendChild(overlay);
+    document.getElementById('menuPrincipal').classList.add('virando-pagina');
     tocarPagina();
-    document.body.style.opacity = '0';
+
     setTimeout(() => {
-      if (arquivo) window.location.href = arquivo;
-      else {
+      if (arquivo) {
+        window.location.href = estiloEspecial ? (arquivo + '?estilo=' + encodeURIComponent(estiloEspecial)) : arquivo;
+      } else {
         overlay.remove();
-        document.body.style.opacity = '1';
+        document.getElementById('menuPrincipal').classList.remove('virando-pagina');
       }
-    }, 600);
+    }, 700);
   }
 
   function gerarTecladoRunico() {
@@ -746,7 +838,7 @@
     if (senhaDigitada === senhaCorreta) {
       modalSenha.classList.remove('ativo');
       if (itemAtual.titulo === "Manuscrito Mestre") abrirEditor();
-      else redirecionar(itemAtual.arquivo);
+      else redirecionar(itemAtual.arquivo, itemAtual.estiloEspecial);
       itemAtual = null;
       inputSenha.textContent = '';
       inputSenha.dataset.letras = '';
@@ -821,7 +913,7 @@
       const camposItem = [
         { label: 'Título', valor: item.titulo, chave: 'titulo' },
         { label: 'Descrição', valor: item.descricao || '', chave: 'descricao' },
-        { label: 'Arquivo', valor: item.arquivo || '', chave: 'arquivo' },
+        { label: 'Arquivo', valor: item.arquivo || '', chave: 'arquivo', validarArquivo: true },
         { label: 'Senha', valor: item.senha || '', chave: 'senha' },
         { label: 'Aviso', valor: item.aviso || '', chave: 'aviso' }
       ];
@@ -835,7 +927,36 @@
         });
         label.appendChild(input);
         div.appendChild(label);
+        if (campo.validarArquivo) {
+          const avisoArquivo = document.createElement('div');
+          avisoArquivo.style.cssText = 'font-size:0.75rem;margin-top:0.2rem;min-height:1em;';
+          div.appendChild(avisoArquivo);
+          const validar = () => validarArquivoExiste(input.value, avisoArquivo);
+          input.addEventListener('blur', validar);
+          if (input.value) validar();
+        }
       });
+
+      const labelEstilo = document.createElement('label');
+      labelEstilo.textContent = 'Estilo Especial';
+      const selectEstilo = document.createElement('select');
+      selectEstilo.style.cssText = 'width:100%;padding:0.6rem;margin-top:0.3rem;background:#2a1f14;border:1px solid #8B6914;border-radius:4px;color:#f0ddb8;font-size:1rem;';
+      [
+        { valor: '', texto: 'Nenhum' },
+        { valor: 'sonho', texto: 'Modo Sonho (blur + saturação)' }
+      ].forEach(opcao => {
+        const option = document.createElement('option');
+        option.value = opcao.valor;
+        option.textContent = opcao.texto;
+        if ((item.estiloEspecial || '') === opcao.valor) option.selected = true;
+        selectEstilo.appendChild(option);
+      });
+      selectEstilo.addEventListener('change', () => {
+        itensMenu[index].estiloEspecial = selectEstilo.value;
+      });
+      labelEstilo.appendChild(selectEstilo);
+      div.appendChild(labelEstilo);
+
       const btnRemover = document.createElement('button');
       btnRemover.textContent = 'Remover';
       btnRemover.style.background = '#8b1a1a';
@@ -856,7 +977,8 @@
         descricao: '',
         arquivo: '',
         senha: '',
-        aviso: ''
+        aviso: '',
+        estiloEspecial: ''
       });
       renderizarEditor();
       renderizarMenu();
@@ -881,6 +1003,40 @@
     a.click();
     URL.revokeObjectURL(url);
   });
+
+  document.getElementById('btnCopiarJSON').addEventListener('click', async () => {
+    config.itens = itensMenu;
+    const texto = JSON.stringify(config, null, 2);
+    try {
+      await navigator.clipboard.writeText(texto);
+      alert('JSON copiado! Cole direto no menu.json pelo app do GitHub no celular.');
+    } catch (e) {
+      alert('Não deu pra copiar automaticamente. Use "Baixar JSON" em vez disso.');
+    }
+  });
+
+  function validarArquivoExiste(arquivo, alvo) {
+    if (!arquivo) {
+      alvo.textContent = '';
+      return;
+    }
+    alvo.textContent = 'verificando…';
+    alvo.style.color = '#a3855a';
+    fetch(arquivo, { method: 'HEAD', cache: 'no-store' })
+      .then(res => {
+        if (res.ok) {
+          alvo.textContent = '✓ arquivo encontrado';
+          alvo.style.color = '#4a7c3f';
+        } else {
+          alvo.textContent = '⚠ arquivo não encontrado nesse endereço';
+          alvo.style.color = '#8b1a1a';
+        }
+      })
+      .catch(() => {
+        alvo.textContent = '⚠ não foi possível checar (offline ou bloqueado)';
+        alvo.style.color = '#8b1a1a';
+      });
+  }
 
   document.getElementById('btnFecharEditor').addEventListener('click', () => {
     editorMestre.classList.remove('ativo');
@@ -930,6 +1086,87 @@
     }
   }
 
+  let ambienteAtivo = false;
+  let ambienteNodes = null;
+
+  function alternarAmbiente() {
+    if (ambienteAtivo) pararAmbiente();
+    else iniciarAmbiente();
+  }
+
+  function iniciarAmbiente() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      const master = audioCtx.createGain();
+      master.gain.value = 0;
+      master.connect(audioCtx.destination);
+      master.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 2);
+
+      const osc1 = audioCtx.createOscillator();
+      osc1.type = 'sine'; osc1.frequency.value = 55;
+      const osc2 = audioCtx.createOscillator();
+      osc2.type = 'sine'; osc2.frequency.value = 82.5;
+      const droneGain = audioCtx.createGain();
+      droneGain.gain.value = 0.5;
+      osc1.connect(droneGain); osc2.connect(droneGain);
+      droneGain.connect(master);
+      osc1.start(); osc2.start();
+
+      const bufferSize = 2 * audioCtx.sampleRate;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const dados = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) dados[i] = Math.random() * 2 - 1;
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = noiseBuffer;
+      noise.loop = true;
+      const filtroRuido = audioCtx.createBiquadFilter();
+      filtroRuido.type = 'lowpass';
+      filtroRuido.frequency.value = 400;
+      const noiseGain = audioCtx.createGain();
+      noiseGain.gain.value = 0.35;
+      noise.connect(filtroRuido);
+      filtroRuido.connect(noiseGain);
+      noiseGain.connect(master);
+      noise.start();
+
+      const lfo = audioCtx.createOscillator();
+      lfo.frequency.value = 0.07;
+      const lfoGain = audioCtx.createGain();
+      lfoGain.gain.value = 150;
+      lfo.connect(lfoGain);
+      lfoGain.connect(filtroRuido.frequency);
+      lfo.start();
+
+      ambienteNodes = { master, osc1, osc2, noise, lfo };
+      ambienteAtivo = true;
+      atualizarBotaoAmbiente();
+    } catch (e) {}
+  }
+
+  function pararAmbiente() {
+    if (!ambienteNodes) return;
+    const { master, osc1, osc2, noise, lfo } = ambienteNodes;
+    try {
+      master.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
+      setTimeout(() => {
+        [osc1, osc2, noise, lfo].forEach(no => { try { no.stop(); } catch(e) {} });
+      }, 1100);
+    } catch (e) {}
+    ambienteNodes = null;
+    ambienteAtivo = false;
+    atualizarBotaoAmbiente();
+  }
+
+  function atualizarBotaoAmbiente() {
+    const btn = document.getElementById('botaoAmbiente');
+    if (!btn) return;
+    btn.textContent = ambienteAtivo ? '🔊' : '🔈';
+    btn.setAttribute('aria-label', ambienteAtivo ? 'Silenciar ambiente sonoro' : 'Ativar ambiente sonoro');
+    btn.classList.toggle('ativo', ambienteAtivo);
+  }
+
   function inicializar() {
     gerarRunasDecorativas();
     gerarTecladoRunico();
@@ -939,6 +1176,8 @@
     if (intro) {
       intro.addEventListener('animationend', () => intro.remove());
     }
+    const botaoAmbiente = document.getElementById('botaoAmbiente');
+    if (botaoAmbiente) botaoAmbiente.addEventListener('click', alternarAmbiente);
   }
 
   inicializar();

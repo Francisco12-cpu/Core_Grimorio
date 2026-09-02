@@ -533,6 +533,20 @@
     .flor-container { width: min(35vw, 120px); height: min(35vw, 120px); }
     .alma { width: 20px; height: 30px; }
   }
+
+  /* Modo sonho: ativado via ?estilo=sonho na URL (definido pelo mestre no menu.json) */
+  body.core-modo-sonho #frame {
+    filter: blur(0.4px) saturate(1.3) brightness(0.96);
+    transition: filter 1.2s ease;
+  }
+  body.core-modo-sonho::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(20,10,30,0.35) 100%);
+    pointer-events: none;
+    z-index: 999;
+    mix-blend-mode: multiply;
+  }
 </style>
 </head>
 <body>
@@ -1633,6 +1647,15 @@
   } else {
     iniciar();
   }
+
+(function ativarModoSonho() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('estilo') === 'sonho') {
+      document.body.classList.add('core-modo-sonho');
+    }
+  } catch (e) {}
+})();
 </script>
 </body>
 </html>

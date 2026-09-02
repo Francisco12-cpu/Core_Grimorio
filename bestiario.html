@@ -377,7 +377,21 @@
     .nav-right::after { right: 8px; background: linear-gradient(to left, rgba(255,255,255,0.05), transparent); }
     .nav-area:hover::after { opacity: 1; }
     @media (hover: none) { .nav-area::after { display: none; } }
-  </style>
+  
+  /* Modo sonho: ativado via ?estilo=sonho na URL (definido pelo mestre no menu.json) */
+  body.core-modo-sonho {
+    filter: blur(0.4px) saturate(1.3) brightness(0.96);
+    transition: filter 1.2s ease;
+  }
+  body.core-modo-sonho::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(20,10,30,0.35) 100%);
+    pointer-events: none;
+    z-index: 999;
+    mix-blend-mode: multiply;
+  }
+</style>
 </head>
 <body>
 <div class="book-wrapper" id="bookWrapper">
@@ -953,6 +967,15 @@
 
     window.goToPage = goTo;
   })();
+
+(function ativarModoSonho() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('estilo') === 'sonho') {
+      document.body.classList.add('core-modo-sonho');
+    }
+  } catch (e) {}
+})();
 </script>
 </body>
 </html>
