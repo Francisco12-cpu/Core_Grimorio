@@ -51,6 +51,13 @@
       "aviso": ""
     },
     {
+      "titulo": "Acordar",
+      "descricao": "veja a vedade,abra os olhos",
+      "arquivo": "ritual-do-zero.html",
+      "senha": "",
+      "aviso": "Está entrando no inferno."
+    },
+    {
       "titulo": "Fichas editor",
       "descricao": "crie suas fichas de uma forma fasil",
       "arquivo": "ficha-core.html",
