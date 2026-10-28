@@ -58,6 +58,13 @@
       "aviso": "Está entrando no inferno."
     },
     {
+      "titulo": "A Travessia",
+      "descricao": "casca, sombra ou feto? o barqueiro espera.",
+      "arquivo": "travessia.html",
+      "senha": "",
+      "aviso": "O barco já está na margem."
+    },
+    {
       "titulo": "Fichas editor",
       "descricao": "crie suas fichas de uma forma fasil",
       "arquivo": "ficha-core.html",
